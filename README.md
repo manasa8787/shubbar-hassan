@@ -1,2 +1,0 @@
-# shubbar-hassan
-manasty

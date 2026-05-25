@@ -1,0 +1,1359 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>منصتي التعليمية - نظام حماية فعال</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(rgba(240, 238, 235, 0.45), rgba(220, 215, 210, 0.45)), 
+                        url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=600') no-repeat center center;
+            background-size: cover;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bottom-waves {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 120px;
+            background: 
+                repeating-linear-gradient(45deg, transparent, transparent 8px, rgba(111, 66, 193, 0.06) 8px, rgba(111, 66, 193, 0.06) 10px),
+                repeating-linear-gradient(-45deg, transparent, transparent 8px, rgba(243, 156, 18, 0.06) 8px, rgba(243, 156, 18, 0.06) 10px);
+            clip-path: ellipse(90% 100% at 50% 100%);
+            z-index: 1;
+        }
+
+        /* حجب جميع الشاشات افتراضياً حتى يتحقق الجافاسكربت من الهوية */
+        .login-screen, .dashboard-screen {
+            display: none; 
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        .login-screen {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .login-container {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 24px;
+            padding: 35px 25px;
+            width: 100%;
+            max-width: 360px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .logo-area { margin-bottom: 20px; }
+        .logo-text { color: #4A154B; font-size: 28px; font-weight: 700; }
+        .logo-subtext { color: #4A154B; font-size: 12px; letter-spacing: 1.5px; font-weight: bold; }
+
+        .welcome-title { color: #2D2D2D; font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+        .welcome-subtitle { color: #666; font-size: 12px; margin-bottom: 25px; }
+
+        .input-group { position: relative; margin-bottom: 15px; }
+        .input-group i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #666; font-size: 14px; }
+        .input-group input {
+            width: 100%;
+            padding: 12px 40px 12px 15px;
+            border-radius: 25px;
+            border: 1px solid rgba(0, 0, 0, 0.12);
+            font-size: 14px;
+            outline: none;
+            text-align: right;
+        }
+
+        .input-user input { background-color: rgba(210, 190, 230, 0.4); color: #4A154B; }
+        .input-pass input { background-color: rgba(245, 215, 185, 0.4); color: #D35400; }
+
+        .btn-login {
+            width: 100%;
+            background: #6F42C1;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .forgot-links { display: flex; justify-content: space-between; padding: 0 5px; font-size: 12px; }
+        .forgot-links a { text-decoration: none; color: #E67E22; font-weight: 500; }
+        .bottom-platform-text { position: absolute; bottom: 20px; color: #4A154B; font-size: 14px; font-weight: 700; z-index: 5; }
+
+        /* --- واجهة داخل المنصة للموبايل --- */
+        .dashboard-screen {
+            background: rgba(247, 245, 242, 0.9);
+            z-index: 20;
+            flex-direction: column;
+        }
+
+        .mobile-header {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+        .mobile-header h2 { font-size: 16px; color: #4A154B; }
+
+        .mobile-content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            padding-bottom: 90px;
+        }
+
+        .info-bar {
+            background: rgba(74, 21, 75, 0.06);
+            border-radius: 12px;
+            padding: 10px 15px;
+            margin-bottom: 15px;
+            font-size: 13px;
+            color: #4A154B;
+            display: flex;
+            justify-content: space-between;
+            font-weight: 500;
+            border-right: 4px solid #6F42C1;
+        }
+
+        .card {
+            background: #ffffff;
+            padding: 15px 20px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .card-info h3 { font-size: 20px; color: #4A154B; margin-top: 2px; }
+        .card-info p { color: #777; font-size: 12px; }
+
+        .card-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+        .bg-purple { background: #6F42C1; }
+        .bg-orange { background: #E67E22; }
+        .bg-blue { background: #2980B9; }
+
+        /* لوحات التحكم الخاصة بالمدير */
+        .admin-controls {
+            background: #fff;
+            padding: 15px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(0,0,0,0.05);
+            display: none; /* يتم تشغيلها برمجياً فقط للمدير أو المدرس */
+        }
+        .admin-controls h4 { font-size: 14px; color: #4A154B; margin-bottom: 10px; }
+        .admin-input-group { margin-bottom: 10px; }
+        .admin-input-group label { display: block; font-size: 11px; color: #666; margin-bottom: 4px; }
+        .admin-input-group input, .admin-input-group select, .admin-input-group textarea {
+            width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ccc; font-size: 13px; outline: none; background: #fff; font-family: 'Tajawal', sans-serif;
+        }
+        
+        .code-generation-wrapper {
+            display: flex; gap: 8px;
+        }
+        .btn-code-gen {
+            background: #2980B9; color: white; border: none; padding: 0 15px; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer;
+        }
+        
+        .btn-save {
+            width: 100%; background: #27ae60; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px;
+        }
+        .btn-add-student {
+            width: 100%; background: #6F42C1; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; margin-top: 5px;
+        }
+
+        /* شبكة أزرار المنصة */
+        .student-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-top: 10px;
+        }
+
+        .grid-item {
+            background: #fff;
+            padding: 20px 15px;
+            border-radius: 16px;
+            text-align: center;
+            border: 1px solid rgba(0,0,0,0.04);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.01);
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+        .grid-item:active { transform: scale(0.95); }
+        .grid-item i { font-size: 24px; margin-bottom: 8px; display: block; }
+        .grid-item span { font-size: 13px; font-weight: 700; color: #4A154B; }
+
+        .notification-badge {
+            position: absolute; top: 10px; left: 15px; background: #e74c3c; color: white; font-size: 10px; width: 20px; height: 20px; border-radius: 50%; display: none; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 2px 5px rgba(231,76,60,0.4);
+        }
+
+        .c-1 { color: #3498db; }
+        .c-2 { color: #e67e22; }
+        .c-3 { color: #9b59b6; }
+        .c-4 { color: #2ecc71; }
+        .c-5 { color: #e74c3c; }
+        .c-6 { color: #f1c40f; }
+        .c-7 { color: #00bcd4; } /* لون مخصص لزر الذكاء الاصطناعي */
+
+        /* حاويات الأقسام */
+        .lectures-container, .pdf-container, .exams-container, .homeworks-container, .ministerial-container, .announcements-container, .ai-container {
+            display: none; margin-top: 15px;
+        }
+        .back-btn {
+            background: #4A154B; color: #fff; padding: 8px 15px; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; margin-bottom: 15px; display: inline-flex; align-items: center; gap: 5px;
+        }
+        .chapter-accordion, .exam-box, .notify-item, .ministerial-card {
+            background: #fff; border-radius: 12px; margin-bottom: 10px; border: 1px solid rgba(0,0,0,0.05); overflow: hidden;
+        }
+        .chapter-header {
+            padding: 15px; background: #fff; color: #4A154B; font-weight: bold; font-size: 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+        }
+        .chapter-content {
+            display: none; padding: 12px; background: #fdfdfd; border-top: 1px solid #f5f5f5; text-align: center;
+        }
+        .video-wrapper {
+            position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; max-width: 100%; border-radius: 8px; background: #000;
+        }
+        .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
+        .no-video-text { font-size: 12px; color: #888; padding: 10px; text-align: center; }
+        
+        .btn-download-pdf {
+            display: inline-flex; align-items: center; gap: 8px; background: #e74c3c; color: white; padding: 10px 20px; border-radius: 20px; text-decoration: none; font-size: 13px; font-weight: bold; box-shadow: 0 4px 10px rgba(231, 76, 60, 0.2);
+        }
+
+        .timer-badge {
+            background: #e74c3c; color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 18px; font-weight: bold; display: inline-flex; align-items: center; gap: 8px; margin-bottom: 15px;
+        }
+        .upload-section {
+            background: #f9f9f9; border: 2px dashed #2ecc71; border-radius: 12px; padding: 15px; margin-top: 15px; position: relative;
+        }
+        .upload-section input[type="file"] { position: absolute; left: 0; top: 0; opacity: 0; width: 100%; height: 100%; cursor: pointer; }
+        .grade-display-box {
+            background: rgba(46, 204, 113, 0.1); border: 1px solid #2ecc71; border-radius: 12px; padding: 12px; margin-top: 15px; color: #27ae60; font-weight: bold; font-size: 14px;
+        }
+
+        .ministerial-grid { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 10px; }
+        .ministerial-card { padding: 15px; display: flex; flex-direction: column; gap: 10px; background: #fff; }
+        .ministerial-meta { display: flex; justify-content: space-between; align-items: center; font-weight: bold; border-bottom: 1px solid #eee; padding-bottom: 8px; color: #e74c3c; font-size: 14px; }
+        .ministerial-preview-img { width: 100%; max-height: 180px; object-fit: cover; border-radius: 8px; border: 1px solid #ddd; }
+        .ministerial-actions { display: flex; gap: 10px; justify-content: center; margin-top: 5px; }
+        
+        .btn-view-img { background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 15px; font-size: 12px; font-weight: bold; cursor: pointer; }
+        .btn-download-img { background: #e67e22; color: white; text-decoration: none; padding: 8px 15px; border-radius: 15px; font-size: 12px; font-weight: bold; }
+        
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; text-align: center; }
+        .admin-table th, .admin-table td { padding: 8px; border: 1px solid #eee; background: #fff; }
+        .admin-table th { background: #6F42C1; color: white; }
+        .input-score { width: 50px; padding: 4px; text-align: center; border: 1px solid #ccc; border-radius: 4px; }
+        .btn-submit-score { background: #2ecc71; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+        .btn-action-edit { background: #3498db; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+        .btn-action-delete { background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
+
+        .notify-item { padding: 15px; display: flex; align-items: center; gap: 12px; border-right: 5px solid #f1c40f; position: relative; }
+        .notify-icon { color: #e67e22; font-size: 20px; animation: pulse 1.5s infinite; }
+        .notify-body p { font-size: 13px; color: #333; font-weight: bold; line-height: 1.4; }
+        .notify-body span { font-size: 11px; color: #888; display: block; margin-top: 4px; }
+
+        /* --- واجهة شات الذكاء الاصطناعي الحديثة --- */
+        .ai-chat-box {
+            background: #fff; border-radius: 20px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 8px 25px rgba(0,0,0,0.03); display: flex; flex-direction: column; height: 480px; overflow: hidden;
+        }
+        .ai-chat-header {
+            background: linear-gradient(135deg, #00bcd4, #6F42C1); color: white; padding: 15px; display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 14px;
+        }
+        .ai-chat-messages {
+            flex: 1; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; background: #fdfcfb;
+        }
+        .message {
+            max-width: 80%; padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.5; word-wrap: break-word;
+        }
+        .msg-student {
+            background: #6F42C1; color: white; align-self: flex-start; border-bottom-right-radius: 4px; text-align: right;
+        }
+        .msg-ai {
+            background: #eaeaea; color: #2D2D2D; align-self: flex-end; border-bottom-left-radius: 4px; text-align: right; white-space: pre-line;
+        }
+        .ai-chat-input-area {
+            padding: 12px; background: #fff; border-top: 1px solid #eee; display: flex; gap: 8px; align-items: center;
+        }
+        .ai-chat-input-area input {
+            flex: 1; padding: 12px 15px; border-radius: 25px; border: 1px solid #ddd; outline: none; font-size: 13px;
+        }
+        .btn-send-ai {
+            background: #00bcd4; color: white; border: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: background 0.2s;
+        }
+        .btn-send-ai:active { background: #0097a7; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .bottom-nav {
+            position: fixed; bottom: 0; left: 0; right: 0; height: 65px; background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.08); display: flex; justify-content: space-around; align-items: center; z-index: 30;
+        }
+        .nav-link { display: flex; flex-direction: column; align-items: center; color: #888; font-size: 11px; text-decoration: none; font-weight: 500; cursor: pointer; }
+        .nav-link i { font-size: 20px; margin-bottom: 4px; }
+        .nav-link.active { color: #6F42C1; font-weight: 700; }
+        .logout-action { color: #e74c3c !important; }
+    </style>
+</head>
+<body>
+
+    <div class="bottom-waves"></div>
+
+    <div class="login-screen" id="loginScreen">
+        <div class="login-container">
+            <div class="logo-area">
+                <svg width="65" height="50" viewBox="0 0 100 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 15 L75 25 L50 35 L25 25 Z" fill="#E67E22"/>
+                    <path d="M70 27 V37 C70 37 60 45 50 45 C40 45 30 37 30 37 V27" stroke="#4A154B" stroke-width="3" fill="none"/>
+                    <circle cx="50" cy="30" r="8" fill="#E67E22"/>
+                    <path d="M15 65 C35 65 50 55 50 55 C50 55 65 65 85 65" stroke="#4A154B" stroke-width="4" stroke-linecap="round" fill="none"/>
+                    <path d="M18 70 C35 70 50 60 50 60 C50 60 65 70 82 70" stroke="#6F42C1" stroke-width="4" stroke-linecap="round" fill="none"/>
+                </svg>
+                <div class="logo-text">منصتي</div>
+                <div class="logo-subtext">MANASATI</div>
+            </div>
+
+            <div class="welcome-title">يرجى تسجيل الدخول للبدء</div>
+            <div class="welcome-subtitle">المؤسس: بالايميل | المدرس والطلاب: بالاسم الكامل والكود</div>
+
+            <form id="loginForm">
+                <div class="input-group input-user">
+                    <i class="fa-regular fa-user"></i>
+                    <input type="text" placeholder="البريد الإلكتروني أو الاسم الكامل" id="username" required>
+                </div>
+
+                <div class="input-group input-pass">
+                    <i class="fa-solid fa-lock"></i>
+                    <input type="password" placeholder="كود الدخول / الرمز السري" id="password" required>
+                </div>
+
+                <button type="submit" class="btn-login">
+                    تسجيل الدخول
+                    <i class="fa-solid fa-chevron-left" style="font-size: 11px;"></i>
+                </button>
+            </form>
+
+            <div class="forgot-links">
+                <a href="#">نسيت كلمة المرور?</a>
+                <a href="#">Forgot Password?</a>
+            </div>
+        </div>
+        <div class="bottom-platform-text">منصة تعليمية متكاملة</div>
+    </div>
+
+
+    <div class="dashboard-screen" id="dashboardScreen">
+        <div class="mobile-header">
+            <h2 id="platformHeaderTitle"><i class="fa-solid fa-graduation-cap" style="color: #6F42C1;"></i> لوحة تحكم منصتي</h2>
+            <div id="userBadge" style="font-size: 12px; background: rgba(111,66,193,0.1); padding: 4px 10px; border-radius: 12px; color: #6F42C1; font-weight: bold;">المدير</div>
+        </div>
+
+        <div class="mobile-content">
+            
+            <div class="info-bar">
+                <div><i class="fa-solid fa-chalkboard-user"></i> المدرس: <span id="displayTeacher">الأستاذ شبر حسن</span></div>
+                <div><i class="fa-solid fa-book"></i> المادة: <span id="displaySubject">الكيمياء</span></div>
+            </div>
+
+            <div class="admin-controls" id="adminControlsArea">
+                <h4><i class="fa-solid fa-user-plus" style="color: #6F42C1;"></i> تسجيل وإضافة طالب جديد</h4>
+                <div class="admin-input-group">
+                    <label>اسم الطالب الثلاثي</label>
+                    <input type="text" id="regStudentName" placeholder="مثال: أحمد علي حسين">
+                </div>
+                <div class="admin-input-group">
+                    <label>رقم هاتف الطالب (أو ولي الأمر)</label>
+                    <input type="tel" id="regStudentPhone" placeholder="077XXXXXXXX">
+                </div>
+                <div class="admin-input-group">
+                    <label>المرحلة الدراسية</label>
+                    <select id="regStudentLevel">
+                        <option value="السادس العلمي">السادس العلمي</option>
+                        <option value="الثالث متوسط">الثالث متوسط</option>
+                        <option value="الخامس العلمي">الخامس العلمي</option>
+                    </select>
+                </div>
+                <div class="admin-input-group">
+                    <label>كود الدخول المولد (الرقم السري للطالب)</label>
+                    <div class="code-generation-wrapper">
+                        <input type="text" id="regStudentCode" placeholder="اضغط لتوليد الكود تلقائياً" readonly>
+                        <button type="button" class="btn-code-gen" onclick="generateStudentCode()">توليد الكود</button>
+                    </div>
+                </div>
+                <button type="button" class="btn-add-student" onclick="registerNewStudent()"><i class="fa-solid fa-user-check"></i> تسجيل الطالب واعتماد الحساب</button>
+
+                <hr style="margin: 20px 0; border: 0; border-top: 1px dashed #ccc;">
+
+                <h4><i class="fa-solid fa-sliders"></i> إعدادات المنصة والمحاضرات</h4>
+                <div class="admin-input-group">
+                    <label>تعديل اسم المدرس</label>
+                    <input type="text" id="inputTeacherName" value="الأستاذ شبر حسن">
+                </div>
+                <div class="admin-input-group">
+                    <label>تعديل اسم المادة</label>
+                    <input type="text" id="inputSubjectName" value="الكيمياء">
+                </div>
+                
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
+                    <label style="font-weight: bold; color: #6F42C1; font-size: 12px;">🛠️ إدارة محتوى الفصول الـ 10</label>
+                    <div class="admin-input-group" style="margin-top: 5px;">
+                        <select id="selectChapter">
+                            <option value="1">الفصل الأول</option>
+                            <option value="2">الفصل الثاني</option>
+                            <option value="3">الفصل الثالث</option>
+                            <option value="4">الفصل الرابع</option>
+                            <option value="5">الفصل الخامس</option>
+                            <option value="6">الفصل السادس</option>
+                            <option value="7">الفصل السابع</option>
+                            <option value="8">الفصل الثامن</option>
+                            <option value="9">الفصل التاسع</option>
+                            <option value="10">الفصل العاشر</option>
+                        </select>
+                    </div>
+                    <div class="admin-input-group">
+                        <label>رابط فيديو اليوتيوب للدرس</label>
+                        <input type="text" id="youtubeUrlInput" placeholder="أدخل رابط فيديو اليوتيوب أو الـ ID">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>رابط ملف الـ PDF للملزمة</label>
+                        <input type="text" id="pdfUrlInput" placeholder="أدخل رابط ملف الـ PDF هنا">
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
+                    <label style="font-weight: bold; color: #9b59b6; font-size: 12px;">📝 إعدادات الامتحان والوقت</label>
+                    <div class="admin-input-group" style="margin-top: 5px;">
+                        <label>رابط أسئلة الامتحان (PDF)</label>
+                        <input type="text" id="examPdfInput" placeholder="ضع رابط ملف أسئلة الامتحان PDF">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>وقت الامتحان بالدقائق (المؤقت التنازلي)</label>
+                        <input type="number" id="examDurationInput" value="60" min="1">
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
+                    <label style="font-weight: bold; color: #2ecc71; font-size: 12px;">📚 إعدادات رفع الواجبات البيتية</label>
+                    <div class="admin-input-group" style="margin-top: 5px;">
+                        <label>رابط ملف الواجب البيتي (PDF)</label>
+                        <input type="text" id="homeworkPdfInput" placeholder="ضع رابط ملف الواجب البيتي PDF">
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
+                    <label style="font-weight: bold; color: #e74c3c; font-size: 12px;">🏛️ إعدادات الأسئلة الوزارية (صور)</label>
+                    <div class="admin-input-group" style="margin-top: 5px;">
+                        <label>السنة والدور (مثال: 2024 دور أول)</label>
+                        <input type="text" id="ministerialYearInput" placeholder="أدخل السنة والدور">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>رابط صورة النسخة الوزارية</label>
+                        <input type="text" id="ministerialImgInput" placeholder="ضع رابط صورة الأسئلة هنا">
+                    </div>
+                </div>
+
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
+                    <label style="font-weight: bold; color: #f1c40f; font-size: 12px;">⚠️ إدارة التبليغات العامة والإعلانات الفورية</label>
+                    <div class="admin-input-group" style="margin-top: 5px;">
+                        <label>نص التبليغ أو الإعلان المراد نشره للطلاب</label>
+                        <textarea id="announcementTextInput" rows="3" placeholder="اكتب نص التبليغ هنا ليظهر للطلاب فوراً..."></textarea>
+                    </div>
+                </div>
+
+                <button class="btn-save" onclick="updatePlatformInfo()"><i class="fa-solid fa-floppy-disk"></i> حفظ جميع التعديلات ونشر البيانات</button>
+            </div>
+            
+            <div id="adminCardsArea" style="display: none;">
+                <div class="card" id="card1">
+                    <div class="card-info">
+                        <p id="card1Text">إجمالي الطلاب المسجلين</p>
+                        <h3 id="card1Value">0 طلاب</h3>
+                    </div>
+                    <div class="card-icon bg-purple" id="card1Icon"><i class="fa-solid fa-users"></i></div>
+                </div>
+
+                <div class="card" id="card2">
+                    <div class="card-info">
+                        <p id="card2Text">المنصات والمعاهد</p>
+                        <h3 id="card2Value">5 نشطة</h3>
+                    </div>
+                    <div class="card-icon bg-orange"><i class="fa-solid fa-school"></i></div>
+                </div>
+
+                <div class="card" id="card3">
+                    <div class="card-info">
+                        <p id="card3Text">بطاقات الـ QR الصادرة</p>
+                        <h3 id="card3Value">890 بطاقة</h3>
+                    </div>
+                    <div class="card-icon bg-blue"><i class="fa-solid fa-qrcode"></i></div>
+                </div>
+            </div>
+
+            <div id="mainGridArea">
+                <div class="student-grid">
+                    <div class="grid-item" onclick="openLectures()">
+                        <i class="fa-solid fa-video c-1"></i>
+                        <span>المحاضرات</span>
+                    </div>
+                    <div class="grid-item" onclick="openPdfs()">
+                        <i class="fa-solid fa-file-pdf c-2"></i>
+                        <span>الملازم</span>
+                    </div>
+                    <div class="grid-item" onclick="openExams()">
+                        <i class="fa-solid fa-pen-to-square c-3"></i>
+                        <span>الامتحانات</span>
+                    </div>
+                    <div class="grid-item" onclick="openHomeworks()">
+                        <i class="fa-solid fa-paste c-4"></i>
+                        <span>الواجبات</span>
+                    </div>
+                    <div class="grid-item" onclick="openMinisterials()">
+                        <i class="fa-solid fa-landmark c-5"></i>
+                        <span>الأسئلة الوزارية</span>
+                    </div>
+                    <div class="grid-item" id="btnAnnouncementsGrid" onclick="openAnnouncements()">
+                        <div class="notification-badge" id="gridNotifyBadge">0</div>
+                        <i class="fa-solid fa-bell c-6"></i>
+                        <span>تبليغات</span>
+                    </div>
+                    <div class="grid-item" id="btnAiChatGrid" style="display:none;" onclick="openAiChat()">
+                        <i class="fa-solid fa-robot c-7"></i>
+                        <span>مساعد الـ AI الذكي</span>
+                    </div>
+                </div>
+
+                <div id="adminStudentsControlTableArea" style="margin-top:15px; display:none;" class="exam-box">
+                    <h4 style="padding:10px; font-size:13px; color:#4A154B;"><i class="fa-solid fa-address-book"></i> قاعدة بيانات حسابات الطلاب المسجلين</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr style="background:#6F42C1; color:white;">
+                                    <th>اسم الطالب (الدخول)</th>
+                                    <th>رقم الهاتف</th>
+                                    <th>المرحلة</th>
+                                    <th>الكود (السر)</th>
+                                </tr>
+                            </thead>
+                            <tbody id="registeredStudentsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="statusBox" style="background: #fff; padding: 25px 15px; border-radius: 16px; border: 1px dashed rgba(111,66,193,0.3); text-align: center; color: #6F42C1; font-size: 13px; margin-top: 15px;">
+                    <i id="statusBoxIcon" class="fa-solid fa-cloud-arrow-up" style="font-size: 32px; margin-bottom: 8px; color: #E67E22;"></i>
+                    <p id="statusBoxTitle" style="font-weight: bold; margin-bottom: 3px;">جاهز لربط البيانات</p>
+                    <p id="statusBoxDesc" style="color: #888; font-size: 11px;">هنا تظهر جداول الحضور وقوائم الطلاب على الموبايل.</p>
+                </div>
+            </div>
+
+            <div class="lectures-container" id="lecturesContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <div id="lectureAccordionContainer"></div>
+            </div>
+
+            <div class="pdf-container" id="pdfContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <div id="pdfAccordionContainer"></div>
+            </div>
+
+            <div class="exams-container" id="examsContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <div id="studentExamArea" class="exam-box" style="padding: 20px; text-align: center;">
+                    <div class="timer-badge"><i class="fa-solid fa-clock"></i> <span id="examTimer">00:00</span></div>
+                    <div id="examActionArea">
+                        <p style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #4A154B;">امتحان مادة الكيمياء الجاري الآن</p>
+                        <a href="#" id="btnDownloadExam" target="_blank" class="btn-download-pdf" style="background: #9b59b6; margin-bottom: 15px;"><i class="fa-solid fa-file-pdf"></i> تحميل أسئلة الامتحان PDF</a>
+                        <div class="upload-section" style="border-color: #9b59b6;">
+                            <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: #9b59b6; margin-bottom: 5px; display:block;"></i>
+                            <span style="font-size: 12px; font-weight: bold; color: #555;">إضغط هنا لرفع صورة حل الامتحان</span>
+                            <input type="file" id="studentUploadInput" accept="image/*" onchange="simulateStudentUpload()">
+                        </div>
+                        <p id="uploadStatusText" style="font-size: 11px; color: #27ae60; margin-top: 5px; display: none;"><i class="fa-solid fa-check-double"></i> تم رفع إجابتك بنجاح!</p>
+                    </div>
+                    <div class="grade-display-box"><i class="fa-solid fa-marker"></i> درجتك في هذا الامتحان: <span id="studentGradeValue">بانتظار التصحيح</span></div>
+                </div>
+                <div id="adminExamArea" class="exam-box" style="padding: 15px; display: none;">
+                    <h4 style="color: #9b59b6; font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-ranking-star"></i> إجابات ودرجات الطلاب المرفوعة</h4>
+                    <div style="overflow-x: auto;"><table class="admin-table"><thead style="background:#9b59b6;"><tr><th>اسم الطالب</th><th>صورة الحل</th><th>الدرجة</th><th>إجراء</th></tr></thead><tbody id="adminExamTableBody"></tbody></table></div>
+                </div>
+            </div>
+
+            <div class="homeworks-container" id="homeworksContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <div id="studentHomeworkArea" class="exam-box" style="padding: 20px; text-align: center;">
+                    <p style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #4A154B;">الواجب المطلوب من الأستاذ شبر</p>
+                    <a href="#" id="btnDownloadHomework" target="_blank" class="btn-download-pdf" style="background: #2ecc71; margin-bottom: 15px;"><i class="fa-solid fa-file-pdf"></i> تحميل ملف الواجب بيتي (PDF)</a>
+                    <div class="upload-section">
+                        <i class="fa-solid fa-file-image" style="font-size: 24px; color: #2ecc71; margin-bottom: 5px; display:block;"></i>
+                        <span style="font-size: 12px; font-weight: bold; color: #555;">إضغط هنا لرفع صورة حل الواجب</span>
+                        <input type="file" id="homeworkUploadInput" accept="image/*" onchange="submitHomeworkSolution()">
+                    </div>
+                    <p id="homeworkStatusText" style="font-size: 11px; color: #27ae60; margin-top: 5px; display: none;"><i class="fa-solid fa-circle-check"></i> تم تسليم حل الواجب وجاري تبليغ الأستاذ!</p>
+                </div>
+                <div id="adminHomeworkArea" class="exam-box" style="padding: 15px; display: none;">
+                    <h4 style="color: #2ecc71; font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-book-open"></i> قائمة حلول الواجبات المستلمة للطلاب</h4>
+                    <div style="overflow-x: auto;"><table class="admin-table"><thead><tr><th>اسم الطالب</th><th>صورة حل الواجب</th><th>الحالة</th></tr></thead><tbody id="adminHomeworkTableBody"></tbody></table></div>
+                </div>
+            </div>
+
+            <div class="ministerial-container" id="ministerialContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <h4 style="color: #e74c3c; font-size: 14px; margin-bottom: 10px;"><i class="fa-solid fa-landmark"></i> أرشيف الأسئلة الوزارية الرسمية</h4>
+                <div class="ministerial-grid" id="ministerialGridList"></div>
+            </div>
+
+            <div class="announcements-container" id="announcementsContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <h4 style="color: #e67e22; font-size: 14px; margin-bottom: 15px;" id="notifyTitleText"><i class="fa-solid fa-bell"></i> لوحة التنبيهات الرسمية للمنصة</h4>
+                
+                <div id="adminNotificationsCrudArea" style="margin-bottom: 15px; display: none;">
+                    <h5 style="font-size:12px; color:#4A154B; margin-bottom:5px;"><i class="fa-solid fa-list-check"></i> التحكم وإدارة الإعلانات المنشورة:</h5>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>نص التبليغ الحالي</th>
+                                    <th>الإجراءات والتحكم</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminNotificationsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="notificationsListArea">
+                    <div class="no-video-text" id="emptyNotifyText">لا توجد تبليغات أو إعلانات منشورة حالياً.</div>
+                </div>
+            </div>
+
+            <div class="ai-container" id="aiContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <div class="ai-chat-box">
+                    <div class="ai-chat-header">
+                        <i class="fa-solid fa-robot"></i>
+                        <span>المساعد الذكي للأستاذ شبر (حسب المنهج العراقي)</span>
+                    </div>
+                    <div class="ai-chat-messages" id="aiChatMessages">
+                        <div class="message msg-ai">أهلاً بك يا بطل! أنا المساعد الذكي الخاص بالأستاذ شبر حسن. اسألني أي سؤال في المنهج الكيميائي وسأجيبك بالتفصيل العلمي والخطوات الدقيقة. 🧬🧪</div>
+                    </div>
+                    <div class="ai-chat-input-area">
+                        <input type="text" id="aiStudentInput" placeholder="اكتب سؤالك العلمي هنا بالتفصيل...">
+                        <button class="btn-send-ai" onclick="askGeminiAI()"><i class="fa-solid fa-paper-plane"></i></button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-link active" onclick="closeAllSections()"><i class="fa-solid fa-house"></i>الرئيسية</div>
+            <div class="nav-link" id="qrLink"><i class="fa-solid fa-qrcode"></i>مسح QR</div>
+            <div class="nav-link" id="studentsLink"><i class="fa-solid fa-users"></i>الطلاب</div>
+            <div class="nav-link logout-action" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i>خروج</div>
+        </div>
+    </div>
+
+
+    <script>
+        // ضع هنا الـ API Key الخاص بك لتفعيل محرك الذكاء الاصطناعي الحقيقي من جوجل
+        const GEMINI_API_KEY = "ضع_مفتاح_الـ_API_الخاص_بك_هنا";
+
+        // حسابات الإشراف الثابتة والمشفرة داخل الكود
+        const APP_CREDENTIALS = {
+            admin: {
+                email: "shubbar.hassan87@gmail.com",
+                password: "Shosho101987"
+            },
+            teacher: {
+                name: "الأستاذ شبر حسن",
+                code: "TCH-9870"
+            }
+        };
+
+        // عناصر الواجهة الأساسية
+        const loginForm = document.getElementById('loginForm');
+        const loginScreen = document.getElementById('loginScreen');
+        const dashboardScreen = document.getElementById('dashboardScreen');
+        
+        const platformHeaderTitle = document.getElementById('platformHeaderTitle');
+        const userBadge = document.getElementById('userBadge');
+        const qrLink = document.getElementById('qrLink');
+        const studentsLink = document.getElementById('studentsLink');
+        const btnAiChatGrid = document.getElementById('btnAiChatGrid');
+        const aiChatMessages = document.getElementById('aiChatMessages');
+        const aiStudentInput = document.getElementById('aiStudentInput');
+        
+        const displayTeacher = document.getElementById('displayTeacher');
+        const displaySubject = document.getElementById('displaySubject');
+        const inputTeacherName = document.getElementById('inputTeacherName');
+        const inputSubjectName = document.getElementById('inputSubjectName');
+        const selectChapter = document.getElementById('selectChapter');
+        const youtubeUrlInput = document.getElementById('youtubeUrlInput');
+        const pdfUrlInput = document.getElementById('pdfUrlInput');
+        
+        const examPdfInput = document.getElementById('examPdfInput');
+        const examDurationInput = document.getElementById('examDurationInput');
+        const homeworkPdfInput = document.getElementById('homeworkPdfInput');
+        const ministerialYearInput = document.getElementById('ministerialYearInput');
+        const ministerialImgInput = document.getElementById('ministerialImgInput');
+        const announcementTextInput = document.getElementById('announcementTextInput');
+        
+        const regStudentName = document.getElementById('regStudentName');
+        const regStudentPhone = document.getElementById('regStudentPhone');
+        const regStudentLevel = document.getElementById('regStudentLevel');
+        const regStudentCode = document.getElementById('regStudentCode');
+        const registeredStudentsTableBody = document.getElementById('registeredStudentsTableBody');
+        const adminStudentsControlTableArea = document.getElementById('adminStudentsControlTableArea');
+        const card1Value = document.getElementById('card1Value');
+
+        const examsContainer = document.getElementById('examsContainer');
+        const studentExamArea = document.getElementById('studentExamArea');
+        const adminExamArea = document.getElementById('adminExamArea');
+        const btnDownloadExam = document.getElementById('btnDownloadExam');
+        const examTimer = document.getElementById('examTimer');
+        const uploadStatusText = document.getElementById('uploadStatusText');
+        const studentGradeValue = document.getElementById('studentGradeValue');
+        const adminExamTableBody = document.getElementById('adminExamTableBody');
+
+        const homeworksContainer = document.getElementById('homeworksContainer');
+        const studentHomeworkArea = document.getElementById('studentHomeworkArea');
+        const adminHomeworkArea = document.getElementById('adminHomeworkArea');
+        const btnDownloadHomework = document.getElementById('btnDownloadHomework');
+        const homeworkStatusText = document.getElementById('homeworkStatusText');
+        const adminHomeworkTableBody = document.getElementById('adminHomeworkTableBody');
+
+        const ministerialContainer = document.getElementById('ministerialContainer');
+        const ministerialGridList = document.getElementById('ministerialGridList');
+
+        const announcementsContainer = document.getElementById('announcementsContainer');
+        const adminNotificationsCrudArea = document.getElementById('adminNotificationsCrudArea');
+        const adminNotificationsTableBody = document.getElementById('adminNotificationsTableBody');
+        const notificationsListArea = document.getElementById('notificationsListArea');
+        const emptyNotifyText = document.getElementById('emptyNotifyText');
+        const gridNotifyBadge = document.getElementById('gridNotifyBadge');
+        const notifyTitleText = document.getElementById('notifyTitleText');
+        
+        const adminControlsArea = document.getElementById('adminControlsArea');
+        const adminCardsArea = document.getElementById('adminCardsArea');
+        const mainGridArea = document.getElementById('mainGridArea');
+        const lecturesContainer = document.getElementById('lecturesContainer');
+        const pdfContainer = document.getElementById('pdfContainer');
+        const aiContainer = document.getElementById('aiContainer');
+        
+        const lectureAccordionContainer = document.getElementById('lectureAccordionContainer');
+        const pdfAccordionContainer = document.getElementById('pdfAccordionContainer');
+        
+        const statusBox = document.getElementById('statusBox');
+        const statusBoxIcon = document.getElementById('statusBoxIcon');
+        const statusBoxTitle = document.getElementById('statusBoxTitle');
+        const statusBoxDesc = document.getElementById('statusBoxDesc');
+
+        let currentTeacher = "الأستاذ شبر حسن";
+        let currentSubject = "الكيمياء";
+        const arabicNumbers = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن", "التاسع", "العاشر"];
+
+        let chaptersVideos = { 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "" };
+        let chaptersPdfs = { 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "" };
+
+        let currentExamPdf = "#";
+        let examTimeInMinutes = 60;
+        let examInterval = null;
+        let currentHomeworkPdf = "#";
+
+        let studentUsersDatabase = JSON.parse(localStorage.getItem('studentUsersDb')) || [
+            { name: "حيدر حسن", phone: "07711223344", level: "السادس العلمي", code: "1234" },
+            { name: "علي السجاد", phone: "07755667788", level: "السادس العلمي", code: "5678" }
+        ];
+
+        let ministerialQuestions = [
+            { id: 1, year: "وزاري 2024 - الدور الأول", img: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=500" },
+            { id: 2, year: "وزاري 2023 - الدور الثاني", img: "https://images.unsplash.com/photo-1588072432836-e10032774350?q=80&w=500" }
+        ];
+
+        let studentSubmissions = [
+            { id: 1, name: "حيدر حسن", solutionImg: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=150", score: "" }
+        ];
+
+        let homeworkSubmissions = [
+            { id: 1, name: "علي السجاد", solutionImg: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=150" }
+        ];
+
+        let publicAnnouncements = [
+            { id: 1, text: "تنبيه هام: غداً امتحان شامل في الفصل الأول كيمياء يرجى الحضور مبكراً ⚠️", time: "اليوم الساعة 4:00 م" },
+            { id: 2, text: "تم رفع ملزمة الفصل الثالث كاملة في قسم الملازم بصيغة PDF قابلة للتحميل.", time: "أمس الساعة 8:30 م" }
+        ];
+
+        // دالة فحص حالة الجلسة عند تحميل الصفحة
+        function checkActiveUserSession() {
+            const activeSession = sessionStorage.getItem('active_session_role');
+            const sessionUser = sessionStorage.getItem('active_session_user');
+
+            loginScreen.style.display = 'none';
+            dashboardScreen.style.display = 'none';
+
+            if (activeSession) {
+                dashboardScreen.style.display = 'flex';
+                if (activeSession === 'admin') {
+                    setAdminView();
+                } else if (activeSession === 'teacher') {
+                    setTeacherView();
+                } else {
+                    setStudentView(sessionUser);
+                }
+            } else {
+                loginScreen.style.display = 'flex';
+            }
+        }
+
+        function getYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : url;
+        }
+
+        function generateStudentCode() {
+            const randomCode = "STU-" + Math.floor(1000 + Math.random() * 9000);
+            regStudentCode.value = randomCode;
+        }
+
+        function registerNewStudent() {
+            const name = regStudentName.value.trim();
+            const phone = regStudentPhone.value.trim();
+            const level = regStudentLevel.value;
+            const code = regStudentCode.value.trim();
+
+            if (name === "" || phone === "" || code === "") {
+                alert("يرجى ملء كافة حقول الطالب وتوليد كود الدخول أولاً!");
+                return;
+            }
+
+            const exists = studentUsersDatabase.some(user => user.name === name);
+            if(exists) {
+                alert("هذا الطالب مسجل مسبقاً بنفس الاسم الثلاثي!");
+                return;
+            }
+
+            studentUsersDatabase.push({ name, phone, level, code });
+            localStorage.setItem('studentUsersDb', JSON.stringify(studentUsersDatabase));
+            
+            regStudentName.value = "";
+            regStudentPhone.value = "";
+            regStudentCode.value = "";
+            
+            alert(`تم تسجيل الطالب "${name}" بنجاح!\nكود دخول الطالب: ${code}`);
+            updateStudentsTableUI();
+        }
+
+        function updateStudentsTableUI() {
+            registeredStudentsTableBody.innerHTML = "";
+            studentUsersDatabase.forEach(stu => {
+                registeredStudentsTableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${stu.name}</strong></td>
+                        <td>${stu.phone}</td>
+                        <td><span style="color:#6F42C1;">${stu.level}</span></td>
+                        <td><code style="background:#eee; padding:2px 6px; border-radius:4px; font-weight:bold; color:#d35400;">${stu.code}</code></td>
+                    </tr>
+                `;
+            });
+            card1Value.textContent = studentUsersDatabase.length + " طلاب";
+        }
+
+        function buildLecturesAccordion() {
+            lectureAccordionContainer.innerHTML = "";
+            for (let i = 1; i <= 10; i++) {
+                const videoId = chaptersVideos[i];
+                let videoHTML = `<div class="no-video-text"><i class="fa-solid fa-video-slash"></i> لم يتم رفع محاضرة لهذا الفصل بعد.</div>`;
+                if (videoId) { videoHTML = `<div class="video-wrapper"><iframe src="https://www.youtube.com/embed/${videoId}" allowfullscreen></iframe></div>`; }
+
+                lectureAccordionContainer.innerHTML += `
+                    <div class="chapter-accordion">
+                        <div class="chapter-header" onclick="toggleSection('lecture', ${i})">
+                            <span><i class="fa-regular fa-folder-open" style="color: #3498db; margin-left: 5px;"></i> الفصل ${arabicNumbers[i-1]}</span>
+                            <i class="fa-solid fa-chevron-down" id="l-arrow-${i}" style="font-size: 12px; transition: transform 0.3s;"></i>
+                        </div>
+                        <div class="chapter-content" id="l-content-${i}">${videoHTML}</div>
+                    </div>`;
+            }
+        }
+
+        function buildPdfsAccordion() {
+            pdfAccordionContainer.innerHTML = "";
+            for (let i = 1; i <= 10; i++) {
+                const pdfUrl = chaptersPdfs[i];
+                let pdfHTML = `<div class="no-video-text"><i class="fa-solid fa-file-circle-xmark"></i> لم يتم رفع ملزمة لهذا الفصل بعد.</div>`;
+                if (pdfUrl) { pdfHTML = `<div style="padding: 10px 0;"><a href="${pdfUrl}" target="_blank" class="btn-download-pdf"><i class="fa-solid fa-file-arrow-down"></i> استعراض وتحميل الملزمة (PDF)</a></div>`; }
+
+                pdfAccordionContainer.innerHTML += `
+                    <div class="chapter-accordion">
+                        <div class="chapter-header" onclick="toggleSection('pdf', ${i})">
+                            <span><i class="fa-regular fa-file-pdf" style="color: #e67e22; margin-left: 5px;"></i> ملزمة الفصل ${arabicNumbers[i-1]}</span>
+                            <i class="fa-solid fa-chevron-down" id="p-arrow-${i}" style="font-size: 12px; transition: transform 0.3s;"></i>
+                        </div>
+                        <div class="chapter-content" id="p-content-${i}">${pdfHTML}</div>
+                    </div>`;
+            }
+        }
+
+        function buildMinisterialGrid() {
+            ministerialGridList.innerHTML = "";
+            if (ministerialQuestions.length === 0) {
+                ministerialGridList.innerHTML = `<div class="no-video-text"><i class="fa-solid fa-folder-open"></i> لم يتم رفع أي أسئلة وزارية حتى الآن.</div>`;
+                return;
+            }
+            ministerialQuestions.forEach(q => {
+                ministerialGridList.innerHTML += `
+                    <div class="ministerial-card">
+                        <div class="ministerial-meta">
+                            <span><i class="fa-solid fa-scroll"></i> ${q.year}</span>
+                            <span style="font-size:11px; color:#666;">مادة الكيمياء</span>
+                        </div>
+                        <img src="${q.img}" class="ministerial-preview-img" alt="الأسئلة الوزارية" onclick="window.open('${q.img}', '_blank')">
+                        <div class="ministerial-actions">
+                            <button class="btn-view-img" onclick="window.open('${q.img}', '_blank')"><i class="fa-solid fa-eye"></i> معاينة</button>
+                            <a href="${q.img}" download="وزاري-${q.year}.jpg" target="_blank" class="btn-download-img"><i class="fa-solid fa-download"></i> تحميل الصورة</a>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function updateAnnouncementsUI() {
+            if(publicAnnouncements.length > 0) {
+                gridNotifyBadge.textContent = publicAnnouncements.length;
+                gridNotifyBadge.style.display = "flex";
+            } else {
+                gridNotifyBadge.style.display = "none";
+            }
+
+            if (publicAnnouncements.length === 0) {
+                emptyNotifyText.style.display = "block";
+                notificationsListArea.innerHTML = "";
+                adminNotificationsTableBody.innerHTML = "<tr><td colspan='2'>لا توجد تبليغات حالية لتعديلها.</td></tr>";
+                return;
+            }
+            
+            emptyNotifyText.style.display = "none";
+            notificationsListArea.innerHTML = "";
+            adminNotificationsTableBody.innerHTML = "";
+
+            publicAnnouncements.forEach(ann => {
+                notificationsListArea.innerHTML += `
+                    <div class="notify-item">
+                        <div class="notify-icon"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                        <div class="notify-body">
+                            <p>${ann.text}</p>
+                            <span><i class="fa-regular fa-clock"></i> ${ann.time}</span>
+                        </div>
+                    </div>
+                `;
+
+                adminNotificationsTableBody.innerHTML += `
+                    <tr>
+                        <td style="text-align:right; font-weight:bold;">${ann.text}</td>
+                        <td>
+                            <button class="btn-action-edit" onclick="editAnnouncement(${ann.id})"><i class="fa-solid fa-pen"></i> تعديل</button>
+                            <button class="btn-action-delete" onclick="deleteAnnouncement(${ann.id})"><i class="fa-solid fa-trash"></i> حذف</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editAnnouncement(id) {
+            const ann = publicAnnouncements.find(a => a.id === id);
+            if (ann) {
+                const newText = prompt("قم بتعديل نص التبليغ الإعلاني:", ann.text);
+                if (newText !== null && newText.trim() !== "") {
+                    ann.text = newText.trim() + " ⚠️";
+                    updateAnnouncementsUI();
+                    alert("تم تعديل التبليغ بنجاح!");
+                }
+            }
+        }
+
+        function deleteAnnouncement(id) {
+            if(confirm("هل أنت متأكد من حذف هذا التبليغ نهائياً من المنصة؟")) {
+                publicAnnouncements = publicAnnouncements.filter(a => a.id !== id);
+                updateAnnouncementsUI();
+                alert("تم حذف التبليغ بنجاح!");
+            }
+        }
+
+        function buildAdminExamTable() {
+            adminExamTableBody.innerHTML = "";
+            studentSubmissions.forEach(sub => {
+                adminExamTableBody.innerHTML += `<tr><td><strong>${sub.name}</strong></td><td><a href="${sub.solutionImg}" target="_blank" style="color:#9b59b6; text-decoration:underline;">عرض الحل</a></td><td><input type="number" class="input-score" id="score-input-${sub.id}" value="${sub.score}" placeholder="100"></td><td><button class="btn-submit-score" onclick="submitStudentScore(${sub.id})">حفظ</button></td></tr>`;
+            });
+        }
+
+        function buildAdminHomeworkTable() {
+            adminHomeworkTableBody.innerHTML = "";
+            homeworkSubmissions.forEach(hw => {
+                adminHomeworkTableBody.innerHTML += `<tr><td><strong>${hw.name}</strong></td><td><a href="${hw.solutionImg}" target="_blank" style="color:#2ecc71; text-decoration:underline;">عرض صورة حل الواجب</a></td><td><span style="color:#27ae60; font-weight:bold;"><i class="fa-solid fa-check"></i> تم التسليم</span></td></tr>`;
+            });
+        }
+
+        function submitStudentScore(id) {
+            const inputVal = document.getElementById(`score-input-${id}`).value;
+            const item = studentSubmissions.find(s => s.id === id);
+            if(item) { item.score = inputVal; alert("تم رصد وحفظ درجة الطالب بنجاح!"); }
+        }
+
+        function startExamTimer(durationInMinutes) {
+            clearInterval(examInterval);
+            let timer = durationInMinutes * 60;
+            examInterval = setInterval(function () {
+                let minutes = parseInt(timer / 60, 10); let seconds = parseInt(timer % 60, 10);
+                minutes = minutes < 10 ? "0" + minutes : minutes; seconds = seconds < 10 ? "0" + seconds : seconds;
+                examTimer.textContent = minutes + ":" + seconds;
+                if (--timer < 0) { clearInterval(examInterval); examTimer.textContent = "انتهى الوقت"; document.getElementById('examActionArea').style.pointerEvents = "none"; document.getElementById('examActionArea').style.opacity = "0.5"; }
+            }, 1000);
+        }
+
+        function submitHomeworkSolution() {
+            homeworkStatusText.style.display = "block";
+            const currentStudentName = sessionStorage.getItem('active_session_user') || "طالب جديد";
+            homeworkSubmissions.push({ id: homeworkSubmissions.length + 1, name: currentStudentName, solutionImg: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?q=80&w=150" });
+            buildAdminHomeworkTable();
+            alert("تم تسليم حل الواجب البيتي للأستاذ شبر!");
+        }
+
+        function simulateStudentUpload() {
+            uploadStatusText.style.display = "block";
+            const currentStudentName = sessionStorage.getItem('active_session_user') || "طالب جديد";
+            studentSubmissions.push({ id: studentSubmissions.length + 1, name: currentStudentName, solutionImg: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?q=80&w=150", score: "" });
+            buildAdminExamTable();
+        }
+
+        function toggleSection(type, index) {
+            const prefix = type === 'lecture' ? 'l-' : 'p-';
+            const content = document.getElementById(`${prefix}content-${index}`);
+            const arrow = document.getElementById(`${prefix}arrow-${index}`);
+            if (content.style.display === "block") { content.style.display = "none"; arrow.style.transform = "rotate(0deg)"; } 
+            else { content.style.display = "block"; arrow.style.transform = "rotate(180deg)"; }
+        }
+
+        function openLectures() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            lecturesContainer.style.display = "block"; buildLecturesAccordion();
+        }
+
+        function openPdfs() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            pdfContainer.style.display = "block"; buildPdfsAccordion();
+        }
+
+        // دالة فتح واجهة الذكاء الاصطناعي
+        function openAiChat() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none";
+            aiContainer.style.display = "block";
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        }
+
+        // دالة الربط المباشر بـ Google Gemini API للذكاء الاصطناعي الحقيقي والتفصيلي
+        async function askGeminiAI() {
+            const promptText = aiStudentInput.value.trim();
+            if(promptText === "") return;
+
+            // طباعة رسالة الطالب في واجهة الشات فوراً
+            aiChatMessages.innerHTML += `<div class="message msg-student">${promptText}</div>`;
+            aiStudentInput.value = "";
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+            // إضافة مؤشر جاري التفكير والتحضير العلمي
+            const loadingId = "ai-load-" + Date.now();
+            aiChatMessages.innerHTML += `<div class="message msg-ai" id="${loadingId}"><i class="fa-solid fa-spinner fa-spin"></i> جاري صياغة الإجابة العلمية الدقيقة بالتفصيل...</div>`;
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+
+            const loadingElem = document.getElementById(loadingId);
+
+            if (GEMINI_API_KEY === "ضع_مفتاح_الـ_API_الخاص_بك_هنا" || GEMINI_API_KEY === "") {
+                loadingElem.innerHTML = "⚠️ خطأ برمجي: لم يقم المالك بتفعيل مفتاح الـ API للذكاء الاصطناعي بعد في ملفات السيرفر السريّة.";
+                return;
+            }
+
+            try {
+                // توجيه صارم للـ AI ليلتزم بصفته وبمنهج الكيمياء العراقي
+                const systemInstruction = `أنت المساعد الذكي للأستاذ شبر حسن لعلوم الكيمياء. واجبك هو مساعدة الطلاب في الإجابة عن كافة أسئلتهم واستفساراتهم العلمية المتعلقة بمادة الكيمياء للمنهج العراقي (وخاصة السادس العلمي والثالث متوسط) بالتفصيل والخطوات الدقيقة، وبأسلوب تربوي واضح ومشجع.`;
+                
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: promptText }] }],
+                        systemInstruction: { parts: [{ text: systemInstruction }] }
+                    })
+                });
+
+                const data = await response.json();
+                if (data.candidates && data.candidates[0].content.parts[0].text) {
+                    let aiReply = data.candidates[0].content.parts[0].text;
+                    // تصفية النصوص البرمجية البسيطة وعرض الحل التنسيقي المريح للقراءة
+                    loadingElem.innerHTML = aiReply;
+                } else {
+                    loadingElem.innerHTML = "عذراً يا بطل، واجهت صعوبة في معالجة السؤال حالياً. يرجى المحاولة مرة أخرى.";
+                }
+            } catch (error) {
+                console.error(error);
+                loadingElem.innerHTML = "❌ حدث خطأ أثناء الاتصال بالخادم الذكي. تأكد من جودة اتصال الإنترنت.";
+            }
+            aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
+        }
+
+        function openExams() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            examsContainer.style.display = "block"; btnDownloadExam.href = currentExamPdf; startExamTimer(examTimeInMinutes);
+            const currentRole = sessionStorage.getItem('active_session_role');
+            if (currentRole === "admin" || currentRole === "teacher") { adminExamArea.style.display = "block"; buildAdminExamTable(); } 
+            else { adminExamArea.style.display = "none"; const currentStudentName = sessionStorage.getItem('active_session_user'); const foundSub = studentSubmissions.find(s => s.name === currentStudentName); studentGradeValue.textContent = (foundSub && foundSub.score) ? foundSub.score + " / 100" : "بانتظار التصحيح"; }
+        }
+
+        function openHomeworks() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            homeworksContainer.style.display = "block"; btnDownloadHomework.href = currentHomeworkPdf;
+            const currentRole = sessionStorage.getItem('active_session_role');
+            if (currentRole === "admin" || currentRole === "teacher") { adminHomeworkArea.style.display = "block"; buildAdminHomeworkTable(); } else { adminHomeworkArea.style.display = "none"; }
+        }
+
+        function openMinisterials() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            ministerialContainer.style.display = "block"; buildMinisterialGrid();
+        }
+
+        function openAnnouncements() {
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; aiContainer.style.display = "none";
+            announcementsContainer.style.display = "block";
+            
+            const currentRole = sessionStorage.getItem('active_session_role');
+            if (currentRole === "admin" || currentRole === "teacher") { 
+                notifyTitleText.innerHTML = '<i class="fa-solid fa-bell"></i> لوحة إدارة وتعديل الإعلانات والتبليغات'; 
+                adminNotificationsCrudArea.style.display = "block";
+            } else { 
+                notifyTitleText.innerHTML = '<i class="fa-solid fa-bell"></i> التنبيهات الفورية المستلمة ⚠️'; 
+                adminNotificationsCrudArea.style.display = "none";
+            }
+            updateAnnouncementsUI();
+        }
+
+        function closeAllSections() {
+            lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "block"; 
+            const currentRole = sessionStorage.getItem('active_session_role');
+            if (currentRole === "admin" || currentRole === "teacher") { adminCardsArea.style.display = "block"; }
+            updateAnnouncementsUI();
+        }
+
+        function updatePlatformInfo() {
+            currentTeacher = inputTeacherName.value.trim(); currentSubject = inputSubjectName.value.trim();
+            displayTeacher.textContent = currentTeacher; displaySubject.textContent = currentSubject;
+            
+            const selectedCh = selectChapter.value;
+            const urlValue = youtubeUrlInput.value.trim();
+            if (urlValue !== "") { chaptersVideos[selectedCh] = getYouTubeId(urlValue); youtubeUrlInput.value = ""; }
+            
+            const pdfValue = pdfUrlInput.value.trim();
+            if (pdfValue !== "") { chaptersPdfs[selectedCh] = pdfValue; pdfUrlInput.value = ""; }
+            
+            const examPdfValue = examPdfInput.value.trim();
+            if (examPdfValue !== "") { currentExamPdf = examPdfValue; }
+            examTimeInMinutes = parseInt(examDurationInput.value) || 60;
+            
+            const homeworkPdfValue = homeworkPdfInput.value.trim();
+            if (homeworkPdfValue !== "") { currentHomeworkPdf = homeworkPdfValue; }
+            
+            const mYear = ministerialYearInput.value.trim();
+            const mImg = ministerialImgInput.value.trim();
+            if (mYear !== "" && mImg !== "") {
+                ministerialQuestions.unshift({ id: ministerialQuestions.length + 1, year: mYear, img: mImg });
+                ministerialYearInput.value = ""; ministerialImgInput.value = "";
+            }
+            
+            const announcementText = announcementTextInput.value.trim();
+            if (announcementText !== "") {
+                const now = new Date();
+                const timeStr = "اليوم الساعة " + now.getHours() + ":" + (now.getMinutes()<10?'0':'') + now.getMinutes();
+                publicAnnouncements.unshift({ id: publicAnnouncements.length + 1, text: announcementText + " ⚠️", time: timeStr });
+                announcementTextInput.value = "";
+            }
+            
+            alert("تم حفظ وتحديث كافة البيانات والتبليغات بنجاح!");
+            updateAnnouncementsUI(); buildLecturesAccordion(); buildPdfsAccordion();
+        }
+
+        // نظام تسجيل الدخول الفعال والمتحكم بصلاحية العرض والتحقق المزدوج
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault(); 
+            const usernameValue = document.getElementById('username').value.trim();
+            const passwordValue = document.getElementById('password').value.trim();
+
+            // 1. التحقق من حساب المدير المؤسس (صلاحية كاملة)
+            if (usernameValue.toLowerCase() === APP_CREDENTIALS.admin.email.toLowerCase() && passwordValue === APP_CREDENTIALS.admin.password) {
+                sessionStorage.setItem('active_session_role', 'admin');
+                sessionStorage.setItem('active_session_user', usernameValue);
+                loginScreen.style.display = 'none'; 
+                dashboardScreen.style.display = 'flex'; 
+                setAdminView();
+                updateAnnouncementsUI();
+                return;
+            }
+
+            // 2. التحقق من حساب المدرس (صلاحية تحكم خاصة)
+            if (usernameValue === APP_CREDENTIALS.teacher.name && passwordValue === APP_CREDENTIALS.teacher.code) {
+                sessionStorage.setItem('active_session_role', 'teacher');
+                sessionStorage.setItem('active_session_user', usernameValue);
+                loginScreen.style.display = 'none'; 
+                dashboardScreen.style.display = 'flex'; 
+                setTeacherView();
+                updateAnnouncementsUI();
+                return;
+            }
+
+            // 3. التحقق من الطلاب المسجلين بقاعدة البيانات المحلية
+            const matchedStudent = studentUsersDatabase.find(user => user.name === usernameValue && user.code === passwordValue);
+            
+            if (matchedStudent) {
+                sessionStorage.setItem('active_session_role', 'student');
+                sessionStorage.setItem('active_session_user', matchedStudent.name);
+                loginScreen.style.display = 'none'; 
+                dashboardScreen.style.display = 'flex'; 
+                setStudentView(matchedStudent.name);
+                updateAnnouncementsUI();
+                return;
+            }
+
+            // إذا كانت البيانات خاطئة
+            alert("خطأ: اسم المستخدم أو كود الدخول غير صحيح! يرجى التأكد والمحاولة مجدداً.");
+        });
+
+        function setAdminView() {
+            platformHeaderTitle.innerHTML = '<i class="fa-solid fa-graduation-cap" style="color: #6F42C1;"></i> لوحة المدير المؤسس';
+            userBadge.textContent = "المؤسس"; userBadge.style.background = "rgba(111,66,193,0.1)"; userBadge.style.color = "#6F42C1";
+            
+            adminControlsArea.style.display = "block"; 
+            adminCardsArea.style.display = "block"; 
+            mainGridArea.style.display = "block";
+            adminStudentsControlTableArea.style.display = "block";
+            btnAiChatGrid.style.display = "none"; // إخفاء زر شات الـ AI عن الإدارة لمنع الازدحام
+            
+            displayTeacher.textContent = currentTeacher; 
+            displaySubject.textContent = currentSubject;
+            
+            qrLink.style.display = "flex"; studentsLink.innerHTML = '<i class="fa-solid fa-users"></i>الطلاب';
+            statusBox.style.border = "1px dashed rgba(111,66,193,0.3)"; statusBox.style.color = "#6F42C1"; statusBoxIcon.className = "fa-solid fa-cloud-arrow-up"; statusBoxIcon.style.color = "#E67E22";
+            statusBoxTitle.textContent = "جاهز لربط البيانات"; statusBoxDesc.textContent = "هنا تظهر جداول الحضور وقوائم الطلاب على الموبايل.";
+            updateStudentsTableUI();
+        }
+
+        function setTeacherView() {
+            platformHeaderTitle.innerHTML = '<i class="fa-solid fa-chalkboard-user" style="color: #2980B9;"></i> لوحة تحكم المدرس';
+            userBadge.textContent = "المدرس"; userBadge.style.background = "rgba(41, 128, 185, 0.1)"; userBadge.style.color = "#2980B9";
+            
+            adminControlsArea.style.display = "block"; 
+            adminCardsArea.style.display = "block"; 
+            mainGridArea.style.display = "block";
+            adminStudentsControlTableArea.style.display = "block";
+            btnAiChatGrid.style.display = "none";
+            
+            displayTeacher.textContent = currentTeacher; 
+            displaySubject.textContent = currentSubject;
+            
+            qrLink.style.display = "flex"; studentsLink.innerHTML = '<i class="fa-solid fa-users"></i>الطلاب';
+            statusBox.style.border = "1px dashed rgba(41, 128, 185, 0.3)"; statusBox.style.color = "#2980B9"; statusBoxIcon.className = "fa-solid fa-user-shield"; statusBoxIcon.style.color = "#2980B9";
+            statusBoxTitle.textContent = "صلاحيات المدرس نشطة"; statusBoxDesc.textContent = "يمكنك تعديل المحاضرات، الامتحانات، ورصد درجات طلابك.";
+            updateStudentsTableUI();
+        }
+
+        function setStudentView(studentName) {
+            platformHeaderTitle.innerHTML = '<i class="fa-solid fa-user-graduate" style="color: #E67E22;"></i> منصة الطالب';
+            userBadge.textContent = "طالب"; userBadge.style.background = "rgba(230, 126, 34, 0.1)"; userBadge.style.color = "#E67E22";
+            
+            adminControlsArea.style.display = "none"; 
+            adminCardsArea.style.display = "none"; 
+            mainGridArea.style.display = "block";
+            adminStudentsControlTableArea.style.display = "none";
+            btnAiChatGrid.style.display = "block"; // تفعيل وإظهار زر المساعد الذكي للطالب فوراً
+            
+            displayTeacher.textContent = currentTeacher; 
+            displaySubject.textContent = currentSubject;
+            
+            qrLink.style.display = "none"; studentsLink.innerHTML = '<i class="fa-solid fa-book"></i>دروسي';
+            statusBox.style.border = "1px solid rgba(230, 126, 34, 0.2)"; statusBox.style.color = "#4A154B"; statusBoxIcon.className = "fa-solid fa-qrcode"; statusBoxIcon.style.color = "#6F42C1";
+            statusBoxTitle.textContent = "بطاقة الحضور الرقمية الخاصة بك"; statusBoxDesc.textContent = "أظهر هذا الـ QR للمدرس عند دخولك المعهد لتسجيل حضورك.";
+            homeworkStatusText.style.display = "none"; uploadStatusText.style.display = "none";
+        }
+
+        function logout() {
+            clearInterval(examInterval); 
+            sessionStorage.clear(); 
+            dashboardScreen.style.display = 'none'; 
+            loginScreen.style.display = 'flex';
+            document.getElementById('username').value = ''; 
+            document.getElementById('password').value = '';
+        }
+
+        // تشغيل نظام التحقق عند الإقلاع
+        checkActiveUserSession();
+    </script>
+</body>
+</html>
