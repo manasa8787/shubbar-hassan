@@ -428,6 +428,37 @@
         .quiz-option-btn.correct-choice { background: #2ecc71 !important; color: white; border-color: #2ecc71; font-weight: bold; }
         .quiz-option-btn.wrong-choice { background: #e74c3c !important; color: white; border-color: #e74c3c; }
 
+        /* --- تصميم أزرار التواصل مع المدرس المضافة حديثاً --- */
+        .teacher-contact-container {
+            display: flex; gap: 10px; margin-top: 15px; margin-bottom: 5px;
+        }
+        .btn-contact {
+            flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; padding: 12px; border-radius: 14px; text-decoration: none; font-size: 13px; font-weight: bold; color: white; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s;
+        }
+        .btn-contact:active { transform: scale(0.96); }
+        .btn-whatsapp { background: #25D366; }
+        .btn-telegram { background: #0088cc; }
+
+        /* التنسيقات الخاصة بنظام الامتحانات المؤتمت الشامل المستحدث */
+        .mcq-exam-section {
+            background: #fff; padding: 15px; border-radius: 16px; margin-top: 15px; border: 1px solid rgba(155, 89, 182, 0.2); text-align: right;
+        }
+        .mcq-question-card {
+            background: #fdfdfd; border: 1px solid #eee; padding: 12px; border-radius: 10px; margin-bottom: 15px;
+        }
+        .mcq-question-text {
+            font-size: 13px; font-weight: bold; color: #2D2D2D; margin-bottom: 8px;
+        }
+        .mcq-option-label {
+            display: flex; align-items: center; gap: 8px; background: #fff; border: 1px solid #ddd; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; cursor: pointer; font-size: 12px; transition: background 0.2s;
+        }
+        .mcq-option-label:hover { background: #f9f9f9; }
+        .mcq-option-label input { cursor: pointer; }
+        .btn-submit-mcq {
+            width: 100%; background: #9b59b6; color: white; border: none; padding: 12px; border-radius: 25px; font-weight: bold; font-size: 14px; cursor: pointer; margin-top: 5px;
+        }
+        .btn-submit-mcq:active { transform: scale(0.98); }
+
         @media print {
             body * { visibility: hidden; }
             #identityModal, #identityModal * { visibility: visible; }
@@ -497,6 +528,11 @@
                 <div><i class="fa-solid fa-book"></i> المادة: <span id="displaySubject">الكيمياء</span></div>
             </div>
 
+            <div class="teacher-contact-container" id="studentContactArea" style="display: none;">
+                <a href="#" id="linkWhatsapp" target="_blank" class="btn-contact btn-whatsapp"><i class="fa-brands fa-whatsapp"></i> اسأل الأستاذ عبر واتساب</a>
+                <a href="#" id="linkTelegram" target="_blank" class="btn-contact btn-telegram"><i class="fa-brands fa-telegram"></i> مناقشة المنهج تليجرام</a>
+            </div>
+
             <div class="admin-controls" id="adminControlsArea">
                 <h4><i class="fa-solid fa-user-plus" style="color: #6F42C1;"></i> تسجيل وإضافة طالب جديد</h4>
                 <div class="admin-input-group">
@@ -535,6 +571,18 @@
                     <label>تعديل اسم المادة</label>
                     <input type="text" id="inputSubjectName" value="الكيمياء">
                 </div>
+
+                <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
+                    <label style="font-weight: bold; color: #25D366; font-size: 12px;">📞 روابط التواصل مع المدرس (واتساب وتليجرام)</label>
+                    <div class="admin-input-group" style="margin-top: 5px;">
+                        <label>رقم الواتساب الخاص بالمدرس (مع مفتاح الدولة بدون + مثال: 96477XXXXXXXX)</label>
+                        <input type="text" id="inputTeacherWhatsapp" placeholder="مثال: 9647700000000">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>رابط أو معرف التليجرام (بدون علامة @ مثال: Shubar_Username)</label>
+                        <input type="text" id="inputTeacherTelegram" placeholder="أدخل معرف التليجرام الخاص بك">
+                    </div>
+                </div>
                 
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
                     <label style="font-weight: bold; color: #6F42C1; font-size: 12px;">🛠️ إدارة محتوى الفصول الـ 10</label>
@@ -563,9 +611,41 @@
                 </div>
 
                 <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee;">
-                    <label style="font-weight: bold; color: #9b59b6; font-size: 12px;">📝 إعدادات الامتحان والوقت</label>
-                    <div class="admin-input-group" style="margin-top: 5px;">
-                        <label>رابط أسئلة الامتحان (PDF)</label>
+                    <label style="font-weight: bold; color: #9b59b6; font-size: 12px;">📝 إعدادات الامتحانات الإلكترونية الشاملة (MCQ)</label>
+                    <p style="font-size:11px; color:#666; margin-bottom:5px;">اختر فصلاً من الأعلى ثم ضع السؤال والخيارات والحل هنا:</p>
+                    <div class="admin-input-group">
+                        <label>نص السؤال الوزاري</label>
+                        <input type="text" id="adminMcqQuestion" placeholder="مثال: علل، تلقائية التفاعل في ضوء علاقة كبس تكون عندما...">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>الخيار الأول (A)</label>
+                        <input type="text" id="adminMcqOpt0" placeholder="الخيار الأول">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>الخيار الثاني (B)</label>
+                        <input type="text" id="adminMcqOpt1" placeholder="الخيار الثاني">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>الخيار الثالث (C)</label>
+                        <input type="text" id="adminMcqOpt2" placeholder="الخيار الثالث">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>الخيار الرابع (D)</label>
+                        <input type="text" id="adminMcqOpt3" placeholder="الخيار الرابع">
+                    </div>
+                    <div class="admin-input-group">
+                        <label>رقم الخيار الصحيح (ابدأ من 0 إلى 3)</label>
+                        <select id="adminMcqCorrect">
+                            <option value="0">الخيار الأول (A)</option>
+                            <option value="1">الخيار الثاني (B)</option>
+                            <option value="2">الخيار الثالث (C)</option>
+                            <option value="3">الخيار الرابع (D)</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn-code-gen" style="width:100%; padding:8px; background:#9b59b6; margin-bottom:10px;" onclick="addCustomMcqQuestion()">+ إضافة السؤال للفصل المحدد</button>
+                    
+                    <div class="admin-input-group">
+                        <label>رابط أسئلة الامتحان الورقي الاحتياطي (PDF)</label>
                         <input type="text" id="examPdfInput" placeholder="ضع رابط ملف أسئلة الامتحان PDF">
                     </div>
                     <div class="admin-input-group">
@@ -705,8 +785,27 @@
                     
                     <div id="cheatWarningNotice" style="display:none; background:#e74c3c; color:white; font-size:12px; padding:8px; border-radius:8px; margin-bottom:10px; font-weight:bold;">⚠️ تنبيه: تم رصد محاولة مغادرة صفحة الامتحان! تكرار المحاولة سيقفل الامتحان فوراً.</div>
 
-                    <div id="examActionArea">
-                        <p style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #4A154B;">امتحان مادة الكيمياء الجاري الآن</p>
+                    <div style="margin-bottom: 15px; background: rgba(151, 89, 182, 0.05); padding: 10px; border-radius: 12px; border: 1px solid rgba(151, 89, 182, 0.15);">
+                        <label style="font-size:12px; font-weight:bold; color:#4A154B; display:block; margin-bottom:5px;">اختر الفصل لتقديم الامتحان الإلكتروني:</label>
+                        <select id="examSelectChapter" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; outline:none; font-family:'Tajawal';" onchange="loadSelectedChapterMcqExam()">
+                            <option value="1">امتحان الفصل الأول (الثرموداينمك)</option>
+                            <option value="2">امتحان الفصل الثاني (الاتزان الكيميائي)</option>
+                            <option value="3">امتحان الفصل الثالث (الاتزان الأيوني)</option>
+                            <option value="4">امتحان الفصل الرابع (الكهربائية)</option>
+                            <option value="5">امتحان الفصل الخامس (التناسقية)</option>
+                            <option value="6">امتحان الفصل السادس (التحليلية)</option>
+                            <option value="7">امتحان الفصل السابع (العضوية)</option>
+                            <option value="8">امتحان الفصل الثامن (الحياتية)</option>
+                            <option value="9">امتحان الفصل التاسع</option>
+                            <option value="10">امتحان الفصل العاشر</option>
+                        </select>
+                    </div>
+
+                    <div id="mcqExamContainer" class="mcq-exam-section">
+                        </div>
+
+                    <div id="examActionArea" style="margin-top:20px; border-top:1px dashed #ccc; padding-top:15px;">
+                        <p style="font-size: 14px; font-weight: bold; margin-bottom: 15px; color: #4A154B;">امتحان مادة الكيمياء الجاري الآن (رفع الأجوبة الورقية)</p>
                         <a href="#" id="btnDownloadExam" target="_blank" class="btn-download-pdf" style="background: #9b59b6; margin-bottom: 15px;"><i class="fa-solid fa-file-pdf"></i> تحميل أسئلة الامتحان PDF</a>
                         <div class="upload-section" style="border-color: #9b59b6;">
                             <i class="fa-solid fa-cloud-arrow-up" style="font-size: 24px; color: #9b59b6; margin-bottom: 5px; display:block;"></i>
@@ -912,6 +1011,13 @@
         const ministerialYearInput = document.getElementById('ministerialYearInput');
         const ministerialImgInput = document.getElementById('ministerialImgInput');
         const announcementTextInput = document.getElementById('announcementTextInput');
+
+        // عناصر ميزة التواصل مع المدرس المستحدثة مضافاً إليها حقول الإدخال للمدير
+        const studentContactArea = document.getElementById('studentContactArea');
+        const linkWhatsapp = document.getElementById('linkWhatsapp');
+        const linkTelegram = document.getElementById('linkTelegram');
+        const inputTeacherWhatsapp = document.getElementById('inputTeacherWhatsapp');
+        const inputTeacherTelegram = document.getElementById('inputTeacherTelegram');
         
         const regStudentName = document.getElementById('regStudentName');
         const regStudentPhone = document.getElementById('regStudentPhone');
@@ -979,16 +1085,64 @@
         const quizOptionsArea = document.getElementById('quizOptionsArea');
         const quizResultFeedback = document.getElementById('quizResultFeedback');
 
+        // حقول وعناصر نظام الامتحانات المؤتمتة المستحدثة للفصول العشرة
+        const examSelectChapter = document.getElementById('examSelectChapter');
+        const mcqExamContainer = document.getElementById('mcqExamContainer');
+        const adminMcqQuestion = document.getElementById('adminMcqQuestion');
+        const adminMcqOpt0 = document.getElementById('adminMcqOpt0');
+        const adminMcqOpt1 = document.getElementById('adminMcqOpt1');
+        const adminMcqOpt2 = document.getElementById('adminMcqOpt2');
+        const adminMcqOpt3 = document.getElementById('adminMcqOpt3');
+        const adminMcqCorrect = document.getElementById('adminMcqCorrect');
+
         // قاعدة بيانات الأسئلة الوزارية التفاعلية السريعة (تحدي الكيمياء الذكي)
         const chemistryQuizPool = [
             { q: "ما هي وحدة قياس الأنتالبي (ΔH) الشائعة في الديناميكا الحرارية؟", options: ["J/mol", "kJ/mol", "°C", "mL"], correct: 1, hint: "الأنتالبي يقاس ب الكيلوجول على مول." },
             { q: "حسب قاعدة لوشاتيليه، ماذا يحدث عند زيادة الضغط على تفاعل غازي متزن يصاحبه نقصان في الحجم؟", options: ["ينزاح التفاعل نحو المولات الأقل", "ينزاح نحو المولات الأكثر", "يتوقف التفاعل", "لا يتأثر التوازن"], correct: 0, hint: "زيادة الضغط تدفع التفاعل نحو الحجم الأقل (المولات الأقل)." }
         ];
 
+        // بنك أسئلة الامتحانات الشامل لجميع الفصول العشرة (MCQ)
+        let chaptersMcqExams = JSON.parse(localStorage.getItem('plat_chapters_mcq')) || {
+            1: [
+                { q: "في مسعر حراري وضعت عينة من مادة كتلتها 3g فارتفعت الحرارة، تفاعل المسعر يعتبر دائماً:", options: ["ماص للحرارة", "باعث للحرارة", "لا حراري", "متزن استاتيكياً"], correct: 1 }
+            ],
+            2: [
+                { q: "إذا كانت قيمة Kc لتفاعل ما تساوي 1x10^-5 فهذا يدل على أن:", options: ["المتفاعلات أكبر بكثير من النواتج", "النواتج أكبر بكثير", "الكميات متساوية تماماً", "التفاعل تام"], correct: 0 }
+            ],
+            3: [
+                { q: "حسب تأثير الأيون المشترك، فإن درجة تفكك الإلكتروليت الضعيف عند إضافة أيون مشترك:", options: ["تزداد", "تقل", "تبقى ثابتة", "تتضاعف"], correct: 1 }
+            ],
+            4: [
+                { q: "في خلايا التحلل الكهربائي (مثل خلية دانيال) يسري التيار من الأنود إلى الكاثود عبر:", options: ["السلك الخارجي", "الجسر الملحي", "محلول الكاثود", "الهواء الجوي"], correct: 0 }
+            ],
+            5: [
+                { q: "تعتبر الليغندات التي تمنح مزدوجين إلكترونيين إلى الأيون المركزي ليغندات:", options: ["أحادية المخلب", "ثنائية المخلب", "متعددة المخالب", "كليتية"], correct: 1 }
+            ],
+            6: [
+                { q: "العامل المرسب لأيونات المجموعة الأولى (Ag+, Pb2+, Hg22+) هو:", options: ["HCl المخفف", "H2S بوجود HCl", "NH4OH", "(NH4)2CO3"], correct: 0 }
+            ],
+            7: [
+                { q: "المجموعة الفعالة (الوظيفية) المميزة للكحولات هي مجموعة:", options: ["الكربونيل", "الهيدروكسيل (-OH)", "الإيثر", "الاستر"], correct: 1 }
+            ],
+            8: [
+                { q: "تتكون البروتينات من اتحاد أعداد كبيرة من جزيئات الكربوهيدرات أم الأحماض الأمينية؟", options: ["الأحماض الدهنية", "السكريات الأحادية", "الأحماض الأمينية", "النيوكليوتيدات"], correct: 2 }
+            ],
+            9: [
+                { q: "العلاقة التي تربط سرعة التفاعل بتركيز المتفاعلات تسمى:", options: ["قانون فعل الكتلة", "قانون هيس", "علاقة كبس", "فرضية افوجادرو"], correct: 0 }
+            ],
+            10: [
+                { q: "المركبات التي تمتلك نفس الصيغة الجزيئية وتختلف في التركيبية تدعى البوليمرات أم المتجانسات؟", options: ["البوليمرات", "الجناسات (الأيزومرات)", "الهيدروكربونات", "الأملاح المزدوجة"], correct: 1 }
+            ]
+        };
+
         // استرجاع البيانات المحفوظة من المتصفح مباشرة أو اعتماد القيم الافتراضية لحماية بياناتك من الحذف عند إعادة التحميل
         let currentTeacher = localStorage.getItem('plat_teacher') || "الأستاذ شبر حسن";
         let currentSubject = localStorage.getItem('plat_subject') || "الكيمياء";
         const arabicNumbers = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن", "التاسع", "العاشر"];
+
+        // استرجاع بيانات التواصل أو وضع قيم افتراضية
+        let teacherWhatsapp = localStorage.getItem('plat_whatsapp') || "9647700000000";
+        let teacherTelegram = localStorage.getItem('plat_telegram') || "Shubar_Hassan";
 
         let chaptersVideos = JSON.parse(localStorage.getItem('plat_videos')) || { 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "" };
         let chaptersPdfs = JSON.parse(localStorage.getItem('plat_pdfs')) || { 1: "", 2: "", 3: "", 4: "", 5: "", 6: "", 7: "", 8: "", 9: "", 10: "" };
@@ -1057,6 +1211,8 @@
                             examTimer.textContent = "تم حظر الطالب بسبب الغش";
                             document.getElementById('examActionArea').style.pointerEvents = "none";
                             document.getElementById('examActionArea').style.opacity = "0.3";
+                            mcqExamContainer.style.pointerEvents = "none";
+                            mcqExamContainer.style.opacity = "0.3";
                             cheatWarningNotice.textContent = "❌ تم قفل الامتحان بالكامل وسحب الورقة التنافسية فورياً بسبب الغش الأكاديمي المكرر.";
                             alert("❌ تم قفل الامتحان ورصد درجة صفر بحقك بسبب تعمد الغش ومغادرة النافذة التعليمية.");
                         }
@@ -1073,17 +1229,29 @@
             }
         }
 
+        // دالة تحديث ديناميكي لروابط التواصل مع المدرس للطلاب
+        function updateContactLinksUI() {
+            linkWhatsapp.href = `https://wa.me/${teacherWhatsapp}`;
+            linkTelegram.href = `https://t.me/${teacherTelegram}`;
+        }
+
         // دالة سحب حية وتلقائية للبيانات من السحابة فور تشغيل تطبيق الموبايل
         function listenToFirebaseUpdates() {
             if (!database) return;
             
             database.ref('plat_teacher').on('value', snapshot => { if(snapshot.exists()) { currentTeacher = snapshot.val(); displayTeacher.textContent = currentTeacher; if(inputTeacherName) inputTeacherName.value = currentTeacher; } });
             database.ref('plat_subject').on('value', snapshot => { if(snapshot.exists()) { currentSubject = snapshot.val(); displaySubject.textContent = currentSubject; if(inputSubjectName) inputSubjectName.value = currentSubject; } });
+            
+            // مزامنة حية لروابط التواصل مع المدرس عبر فايربيز
+            database.ref('plat_whatsapp').on('value', snapshot => { if(snapshot.exists()) { teacherWhatsapp = snapshot.val(); if(inputTeacherWhatsapp) inputTeacherWhatsapp.value = teacherWhatsapp; updateContactLinksUI(); } });
+            database.ref('plat_telegram').on('value', snapshot => { if(snapshot.exists()) { teacherTelegram = snapshot.val(); if(inputTeacherTelegram) inputTeacherTelegram.value = teacherTelegram; updateContactLinksUI(); } });
+
             database.ref('plat_videos').on('value', snapshot => { if(snapshot.exists()) { chaptersVideos = snapshot.val(); buildLecturesAccordion(); } });
             database.ref('plat_pdfs').on('value', snapshot => { if(snapshot.exists()) { chaptersPdfs = snapshot.val(); buildPdfsAccordion(); } });
             database.ref('plat_exam_pdf').on('value', snapshot => { if(snapshot.exists()) currentExamPdf = snapshot.val(); });
             database.ref('plat_exam_duration').on('value', snapshot => { if(snapshot.exists()) { examTimeInMinutes = parseInt(snapshot.val()); if(examDurationInput) examDurationInput.value = examTimeInMinutes; } });
             database.ref('plat_homework_pdf').on('value', snapshot => { if(snapshot.exists()) currentHomeworkPdf = snapshot.val(); });
+            database.ref('plat_chapters_mcq').on('value', snapshot => { if(snapshot.exists()) chaptersMcqExams = snapshot.val(); });
             
             database.ref('studentUsersDb').on('value', snapshot => {
                 if(snapshot.exists()) {
@@ -1120,6 +1288,7 @@
             
             // تفعيل نظام الاستماع السحابي فور فحص الجلسة لتحديث بيانات المنصة لحظياً
             listenToFirebaseUpdates();
+            updateContactLinksUI();
         }
 
         function getYouTubeId(url) {
@@ -1348,6 +1517,115 @@
             quizResultFeedback.style.display = "block";
         }
 
+        // دالة مستحدثة لإضافة الأسئلة الاختيارية من لوحة الإدارة
+        function addCustomMcqQuestion() {
+            const ch = selectChapter.value;
+            const qText = adminMcqQuestion.value.trim();
+            const opt0 = adminMcqOpt0.value.trim();
+            const opt1 = adminMcqOpt1.value.trim();
+            const opt2 = adminMcqOpt2.value.trim();
+            const opt3 = adminMcqOpt3.value.trim();
+            const corr = parseInt(adminMcqCorrect.value);
+
+            if(qText === "" || opt0 === "" || opt1 === "" || opt2 === "" || opt3 === "") {
+                alert("يرجى ملء نص السؤال وجميع الخيارات الأربعة أولاً!");
+                return;
+            }
+
+            if(!chaptersMcqExams[ch]) chaptersMcqExams[ch] = [];
+            chaptersMcqExams[ch].push({
+                q: qText,
+                options: [opt0, opt1, opt2, opt3],
+                correct: corr
+            });
+
+            syncDataToFirebase('plat_chapters_mcq', chaptersMcqExams);
+            alert(`تمت إضافة السؤال بنجاح إلى امتحان الفصل ${arabicNumbers[ch-1]}!`);
+
+            adminMcqQuestion.value = "";
+            adminMcqOpt0.value = "";
+            adminMcqOpt1.value = "";
+            adminMcqOpt2.value = "";
+            adminMcqOpt3.value = "";
+        }
+
+        // دالة مستحدثة لبناء وعرض الامتحانات المؤتمتة للطالب حسب الفصل المختار
+        function loadSelectedChapterMcqExam() {
+            const ch = examSelectChapter.value;
+            const questions = chaptersMcqExams[ch] || [];
+            mcqExamContainer.innerHTML = "";
+
+            if(questions.length === 0) {
+                mcqExamContainer.innerHTML = `<div class="no-video-text"><i class="fa-solid fa-rectangle-list"></i> لا توجد أسئلة مؤتمتة إلكترونية لهذا الفصل حالياً. يمكنك الاعتماد على الامتحان الورقي المرفق بالأسفل.</div>`;
+                return;
+            }
+
+            questions.forEach((item, qIdx) => {
+                let optionsHTML = "";
+                item.options.forEach((opt, optIdx) => {
+                    optionsHTML += `
+                        <label class="mcq-option-label">
+                            <input type="radio" name="chapter_mcq_${qIdx}" value="${optIdx}">
+                            <span>${opt}</span>
+                        </label>
+                    `;
+                });
+
+                mcqExamContainer.innerHTML += `
+                    <div class="mcq-question-card" id="mcq_card_${qIdx}">
+                        <div class="mcq-question-text">${qIdx + 1}. ${item.q}</div>
+                        <div class="mcq-options-group">${optionsHTML}</div>
+                    </div>
+                `;
+            });
+
+            mcqExamContainer.innerHTML += `<button type="button" class="btn-submit-mcq" onclick="calculateChapterMcqScore()">إرسال وتصحيح الامتحان الإلكتروني فوراً</button>`;
+        }
+
+        // دالة مستحدثة لتصحيح امتحان الخيارات واحتساب الدرجة الكلية للطالب تلقائياً وحفظها
+        function calculateChapterMcqScore() {
+            const ch = examSelectChapter.value;
+            const questions = chaptersMcqExams[ch] || [];
+            let correctAnswersCount = 0;
+            let uncompleted = false;
+
+            questions.forEach((item, qIdx) => {
+                const checkedOpt = document.querySelector(`input[name="chapter_mcq_${qIdx}"]:checked`);
+                const card = document.getElementById(`mcq_card_${qIdx}`);
+                
+                if(!checkedOpt) {
+                    uncompleted = true;
+                    card.style.border = "1px solid #e74c3c";
+                } else {
+                    card.style.border = "1px solid #eee";
+                    if(parseInt(checkedOpt.value) === item.correct) {
+                        correctAnswersCount++;
+                    }
+                }
+            });
+
+            if(uncompleted) {
+                alert("يرجى الإجابة على جميع الأسئلة الظاهرة في الصفحة قبل الإرسال!");
+                return;
+            }
+
+            const finalGrade = Math.round((correctAnswersCount / questions.length) * 100);
+            studentGradeValue.textContent = finalGrade + " / 100 (إلكتروني)";
+            
+            // محاكاة حفظ النتيجة في السجل
+            const currentStudentName = sessionStorage.getItem('active_session_user') || "طالب جديد";
+            studentSubmissions.push({
+                id: studentSubmissions.length + 1,
+                name: currentStudentName + ` (الفصل ${arabicNumbers[ch-1]})`,
+                solutionImg: "https://images.unsplash.com/photo-1606326608606-aa0b62935f2b?q=80&w=150",
+                score: finalGrade.toString()
+            });
+            syncDataToFirebase('plat_submissions', studentSubmissions);
+            buildAdminExamTable();
+
+            alert(`🚀 تم تصحيح إجاباتك بنجاح تلقائياً!\nدرجتك النهائية في امتحان الفصل الإلكتروني هي: ${finalGrade}%`);
+        }
+
         function updateAnnouncementsUI() {
             if(publicAnnouncements.length > 0) {
                 gridNotifyBadge.textContent = publicAnnouncements.length;
@@ -1443,7 +1721,7 @@
                 let minutes = parseInt(timer / 60, 10); let seconds = parseInt(timer % 60, 10);
                 minutes = minutes < 10 ? "0" + minutes : minutes; seconds = seconds < 10 ? "0" + seconds : seconds;
                 examTimer.textContent = minutes + ":" + seconds;
-                if (--timer < 0) { clearInterval(examInterval); examTimer.textContent = "انتهى الوقت"; document.getElementById('examActionArea').style.pointerEvents = "none"; document.getElementById('examActionArea').style.opacity = "0.5"; }
+                if (--timer < 0) { clearInterval(examInterval); examTimer.textContent = "انتهى الوقت"; document.getElementById('examActionArea').style.pointerEvents = "none"; document.getElementById('examActionArea').style.opacity = "0.5"; mcqExamContainer.style.pointerEvents = "none"; mcqExamContainer.style.opacity = "0.5"; }
             }, 1000);
         }
 
@@ -1509,7 +1787,7 @@
 
             const loadingElem = document.getElementById(loadingId);
 
-            if (GEMINI_API_KEY === "ضع_مفتاح_الـ_API_الخاص_بك_هنا" || GEMINI_API_KEY === "") {
+            if (GEMINI_API_KEY === "ضع_مفتاح_الـ_API_الخاص_كبك_هنا" || GEMINI_API_KEY === "") {
                 loadingElem.innerHTML = "⚠️ إشعار: لم يتم تفعيل مفتاح الـ API للذكاء الاصطناعي في هذا الملف البرمجي بعد. يرجى إضافة مفتاحك الخاص داخل الكود البرمجي لربط الطالب مباشرة بخوادم جوجل للذكاء الاصطناعي.";
                 return;
             }
@@ -1562,6 +1840,11 @@
             cheatWarningNotice.textContent = "⚠️ تنبيه: تم رصد محاولة مغادرة صفحة الامتحان! تكرار المحاولة سيقفل الامتحان فوراً.";
             document.getElementById('examActionArea').style.pointerEvents = "auto";
             document.getElementById('examActionArea').style.opacity = "1";
+            mcqExamContainer.style.pointerEvents = "auto";
+            mcqExamContainer.style.opacity = "1";
+
+            // تحميل امتحان الفصل الأول كافتراضي عند فتح الحاوية
+            loadSelectedChapterMcqExam();
 
             startExamTimer(examTimeInMinutes);
             const currentRole = sessionStorage.getItem('active_session_role');
@@ -1610,6 +1893,13 @@
             
             syncDataToFirebase('plat_teacher', currentTeacher);
             syncDataToFirebase('plat_subject', currentSubject);
+
+            // حفظ بيانات روابط تواصل المدرس المستحدثة سحابياً ومحلياً
+            teacherWhatsapp = inputTeacherWhatsapp.value.trim();
+            teacherTelegram = inputTeacherTelegram.value.trim();
+            syncDataToFirebase('plat_whatsapp', teacherWhatsapp);
+            syncDataToFirebase('plat_telegram', teacherTelegram);
+            updateContactLinksUI();
             
             const selectedCh = selectChapter.value;
             const urlValue = youtubeUrlInput.value.trim();
@@ -1710,9 +2000,12 @@
             mainGridArea.style.display = "block";
             adminStudentsControlTableArea.style.display = "block";
             btnAiChatGrid.style.display = "none"; 
+            studentContactArea.style.display = "none"; // إخفاء الأزرار للمدير لعدم الحاجة لها
             
             inputTeacherName.value = currentTeacher;
             inputSubjectName.value = currentSubject;
+            inputTeacherWhatsapp.value = teacherWhatsapp;
+            inputTeacherTelegram.value = teacherTelegram;
             displayTeacher.textContent = currentTeacher; 
             displaySubject.textContent = currentSubject;
             
@@ -1731,9 +2024,12 @@
             mainGridArea.style.display = "block";
             adminStudentsControlTableArea.style.display = "block";
             btnAiChatGrid.style.display = "none";
+            studentContactArea.style.display = "none"; // إخفاء الأزرار للمدرس لعدم الحاجة لها
             
             inputTeacherName.value = currentTeacher;
             inputSubjectName.value = currentSubject;
+            inputTeacherWhatsapp.value = teacherWhatsapp;
+            inputTeacherTelegram.value = teacherTelegram;
             displayTeacher.textContent = currentTeacher; 
             displaySubject.textContent = currentSubject;
             
@@ -1752,6 +2048,7 @@
             mainGridArea.style.display = "block";
             adminStudentsControlTableArea.style.display = "none";
             btnAiChatGrid.style.display = "block"; 
+            studentContactArea.style.display = "flex"; // إظهار أزرار التواصل للطلاب فور تسجيل الدخول
             
             displayTeacher.textContent = currentTeacher; 
             displaySubject.textContent = currentSubject;
