@@ -252,7 +252,7 @@
         .c-7 { color: #00bcd4; } /* لون مخصص لزر الذكاء الاصطناعي */
 
         /* حاويات الأقسام */
-        .lectures-container, .pdf-container, .exams-container, .homeworks-container, .ministerial-container, .announcements-container, .ai-container {
+        .lectures-container, .pdf-container, .exams-container, .homeworks-container, .ministerial-container, .announcements-container, .ai-container, .students-crud-container {
             display: none; margin-top: 15px;
         }
         .back-btn {
@@ -353,6 +353,28 @@
         .nav-link i { font-size: 20px; margin-bottom: 4px; }
         .nav-link.active { color: #6F42C1; font-weight: 700; }
         .logout-action { color: #e74c3c !important; }
+
+        /* --- تصميم الهوية المنبثقة والطباعة (تعديلات مضافة) --- */
+        .identity-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 100; justify-content: center; align-items: center; padding: 20px;
+        }
+        .identity-card-box {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255, 255, 255, 0.5); width: 100%; max-width: 380px; border-radius: 24px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); text-align: center; position: relative; border-top: 6px solid #6F42C1;
+        }
+        .id-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px; }
+        .id-body { display: flex; flex-direction: column; gap: 10px; text-align: right; background: rgba(255,255,255,0.6); padding: 15px; border-radius: 16px; margin-bottom: 15px; border: 1px solid rgba(0,0,0,0.02); }
+        .id-field { font-size: 13px; color: #555; }
+        .id-field strong { color: #4A154B; }
+        .btn-modal-print { background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; font-size: 13px; margin-bottom: 8px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-modal-close { background: #777; color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; width: 100%; font-size: 12px; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #identityModal, #identityModal * { visibility: visible; }
+            #identityModal { position: absolute; left: 0; top: 0; width: 100%; height: 100%; display: flex !important; justify-content: center; align-items: flex-start; background: none; }
+            .identity-card-box { border: 2px solid #6F42C1 !important; width: 85mm; height: 55mm; padding: 15px; border-radius: 12px; box-shadow: none; background: white !important; }
+            .btn-modal-print, .btn-modal-close { display: none !important; }
+        }
     </style>
 </head>
 <body>
@@ -703,13 +725,55 @@
                 </div>
             </div>
 
+            <div class="students-crud-container" id="studentsCrudContainer">
+                <button class="back-btn" onclick="closeAllSections()"><i class="fa-solid fa-arrow-right"></i> العودة للرئيسية</button>
+                <div class="exam-box" style="padding: 15px;">
+                    <h4 style="color: #6F42C1; font-size: 14px; margin-bottom: 15px;"><i class="fa-solid fa-users-gear"></i> لوحة التحكم الكاملة بالطلاب وعرض الهويات</h4>
+                    <div style="overflow-x: auto;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>اسم الطالب</th>
+                                    <th>الهاتف</th>
+                                    <th>المرحلة</th>
+                                    <th>كود السر</th>
+                                    <th>التحكم والعمليات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="crudStudentsTableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
         <div class="bottom-nav">
             <div class="nav-link active" onclick="closeAllSections()"><i class="fa-solid fa-house"></i>الرئيسية</div>
             <div class="nav-link" id="qrLink"><i class="fa-solid fa-qrcode"></i>مسح QR</div>
-            <div class="nav-link" id="studentsLink"><i class="fa-solid fa-users"></i>الطلاب</div>
+            <div class="nav-link" id="studentsLink" onclick="openStudentsCrud()"><i class="fa-solid fa-users"></i>الطلاب</div>
             <div class="nav-link logout-action" onclick="logout()"><i class="fa-solid fa-right-from-bracket"></i>خروج</div>
+        </div>
+    </div>
+
+    <div class="identity-modal" id="identityModal">
+        <div class="identity-card-box">
+            <div class="id-header">
+                <div style="text-align: right;">
+                    <h3 style="font-size: 16px; color: #4A154B; font-weight: 700;">منصة مركز آراي</h3>
+                    <p style="font-size: 10px; color: #E67E22; font-weight: bold;">كيمياء السادس العلمي</p>
+                </div>
+                <i class="fa-solid fa-id-card" style="font-size: 28px; color: #6F42C1;"></i>
+            </div>
+            <div class="id-body">
+                <div class="id-field"><strong>اسم الطالب:</strong> <span id="idCardName">---</span></div>
+                <div class="id-field"><strong>المرحلة الدراسية:</strong> <span id="idCardLevel">---</span></div>
+                <div class="id-field"><strong>رقم الهاتف:</strong> <span id="idCardPhone">---</span></div>
+                <div class="id-field"><strong>كود الدخول السري:</strong> <code id="idCardCode" style="background:#eee; padding:2px 6px; border-radius:4px; font-weight:bold; color:#d35400;">---</code></div>
+            </div>
+            <p style="font-size: 9px; color: #777; margin-bottom: 15px;"><i class="fa-solid fa-circle-info"></i> يرجى إبراز الهوية عند بوابات الدخول الإلكترونية للمعهد.</p>
+            <button class="btn-modal-print" onclick="window.print()"><i class="fa-solid fa-print"></i> أمر طباعة الهوية فوراً</button>
+            <button class="btn-modal-close" onclick="closeIdentityModal()">إغلاق النافذة</button>
         </div>
     </div>
 
@@ -808,6 +872,15 @@
         const statusBoxTitle = document.getElementById('statusBoxTitle');
         const statusBoxDesc = document.getElementById('statusBoxDesc');
 
+        // المتغيرات الجديدة الخاصة بلوحة الطلاب الإضافية والتحكم المستحدث
+        const studentsCrudContainer = document.getElementById('studentsCrudContainer');
+        const crudStudentsTableBody = document.getElementById('crudStudentsTableBody');
+        const identityModal = document.getElementById('identityModal');
+        const idCardName = document.getElementById('idCardName');
+        const idCardLevel = document.getElementById('idCardLevel');
+        const idCardPhone = document.getElementById('idCardPhone');
+        const idCardCode = document.getElementById('idCardCode');
+
         let currentTeacher = "الأستاذ شبر حسن";
         let currentSubject = "الكيمياء";
         const arabicNumbers = ["الأول", "الثاني", "الثالث", "الرابع", "الخامس", "السادس", "السابع", "الثامن", "التاسع", "العاشر"];
@@ -902,6 +975,7 @@
             
             alert(`تم تسجيل الطالب "${name}" بنجاح!\nكود دخول الطالب: ${code}`);
             updateStudentsTableUI();
+            buildCrudStudentsTableUI();
         }
 
         function updateStudentsTableUI() {
@@ -917,6 +991,79 @@
                 `;
             });
             card1Value.textContent = studentUsersDatabase.length + " طلاب";
+        }
+
+        /* دالات التحكم الإضافية الجديدة والمستحدثة لإدارة وحذف وطباعة الهويات */
+        function openStudentsCrud() {
+            const currentRole = sessionStorage.getItem('active_session_role');
+            if (currentRole === "admin" || currentRole === "teacher") {
+                mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+                studentsCrudContainer.style.display = "block";
+                buildCrudStudentsTableUI();
+            } else {
+                alert("قسم 'دروسي': هذه اللوحة مخصصة لإبراز الـ QR واستعراض المناهج الدراسية للطالب.");
+            }
+        }
+
+        function buildCrudStudentsTableUI() {
+            crudStudentsTableBody.innerHTML = "";
+            if (studentUsersDatabase.length === 0) {
+                crudStudentsTableBody.innerHTML = "<tr><td colspan='5'>لا يوجد طلاب مسجلين حالياً.</td></tr>";
+                return;
+            }
+            studentUsersDatabase.forEach((stu, index) => {
+                crudStudentsTableBody.innerHTML += `
+                    <tr>
+                        <td><strong>${stu.name}</strong></td>
+                        <td>${stu.phone}</td>
+                        <td><span style="color:#2980B9;">${stu.level}</span></td>
+                        <td><code style="background:#eee; padding:2px 4px; border-radius:4px; color:#d35400;">${stu.code}</code></td>
+                        <td>
+                            <button class="btn-action-edit" onclick="editStudentInfo(${index})"><i class="fa-solid fa-pen"></i> تعديل</button>
+                            <button class="btn-action-delete" onclick="deleteStudentInfo(${index})"><i class="fa-solid fa-trash"></i> حذف</button>
+                            <button class="btn-submit-score" style="background:#27ae60; margin-top:2px;" onclick="viewStudentIdentity(${index})"><i class="fa-solid fa-id-badge"></i> هوية</button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function editStudentInfo(index) {
+            const stu = studentUsersDatabase[index];
+            const newName = prompt("تعديل اسم الطالب الثلاثي:", stu.name);
+            if (newName === null || newName.trim() === "") return;
+            const newPhone = prompt("تعديل رقم الهاتف الخاص بالطالب:", stu.phone);
+            if (newPhone === null || newPhone.trim() === "") return;
+            
+            studentUsersDatabase[index].name = newName.trim();
+            studentUsersDatabase[index].phone = newPhone.trim();
+            localStorage.setItem('studentUsersDb', JSON.stringify(studentUsersDatabase));
+            alert("تم تحديث بيانات الطالب بنجاح!");
+            updateStudentsTableUI();
+            buildCrudStudentsTableUI();
+        }
+
+        function deleteStudentInfo(index) {
+            if (confirm(`هل أنت متأكد من حذف حساب الطالب "${studentUsersDatabase[index].name}" نهائياً من قاعدة البيانات؟`)) {
+                studentUsersDatabase.splice(index, 1);
+                localStorage.setItem('studentUsersDb', JSON.stringify(studentUsersDatabase));
+                alert("تم حذف الطالب من السجلات بنجاح.");
+                updateStudentsTableUI();
+                buildCrudStudentsTableUI();
+            }
+        }
+
+        function viewStudentIdentity(index) {
+            const stu = studentUsersDatabase[index];
+            idCardName.textContent = stu.name;
+            idCardLevel.textContent = stu.level;
+            idCardPhone.textContent = stu.phone;
+            idCardCode.textContent = stu.code;
+            identityModal.style.display = "flex";
+        }
+
+        function closeIdentityModal() {
+            identityModal.style.display = "none";
         }
 
         function buildLecturesAccordion() {
@@ -1095,18 +1242,18 @@
         }
 
         function openLectures() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             lecturesContainer.style.display = "block"; buildLecturesAccordion();
         }
 
         function openPdfs() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             pdfContainer.style.display = "block"; buildPdfsAccordion();
         }
 
         // دالة فتح واجهة الذكاء الاصطناعي
         function openAiChat() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             aiContainer.style.display = "block";
             aiChatMessages.scrollTop = aiChatMessages.scrollHeight;
         }
@@ -1162,7 +1309,7 @@
         }
 
         function openExams() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             examsContainer.style.display = "block"; btnDownloadExam.href = currentExamPdf; startExamTimer(examTimeInMinutes);
             const currentRole = sessionStorage.getItem('active_session_role');
             if (currentRole === "admin" || currentRole === "teacher") { adminExamArea.style.display = "block"; buildAdminExamTable(); } 
@@ -1170,19 +1317,19 @@
         }
 
         function openHomeworks() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             homeworksContainer.style.display = "block"; btnDownloadHomework.href = currentHomeworkPdf;
             const currentRole = sessionStorage.getItem('active_session_role');
             if (currentRole === "admin" || currentRole === "teacher") { adminHomeworkArea.style.display = "block"; buildAdminHomeworkTable(); } else { adminHomeworkArea.style.display = "none"; }
         }
 
         function openMinisterials() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             ministerialContainer.style.display = "block"; buildMinisterialGrid();
         }
 
         function openAnnouncements() {
-            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; aiContainer.style.display = "none";
+            mainGridArea.style.display = "none"; adminCardsArea.style.display = "none"; lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             announcementsContainer.style.display = "block";
             
             const currentRole = sessionStorage.getItem('active_session_role');
@@ -1197,7 +1344,7 @@
         }
 
         function closeAllSections() {
-            lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none";
+            lecturesContainer.style.display = "none"; pdfContainer.style.display = "none"; examsContainer.style.display = "none"; homeworksContainer.style.display = "none"; ministerialContainer.style.display = "none"; announcementsContainer.style.display = "none"; aiContainer.style.display = "none"; studentsCrudContainer.style.display = "none";
             mainGridArea.style.display = "block"; 
             const currentRole = sessionStorage.getItem('active_session_role');
             if (currentRole === "admin" || currentRole === "teacher") { adminCardsArea.style.display = "block"; }
